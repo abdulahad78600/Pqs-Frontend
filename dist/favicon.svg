@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <defs>
+    <!-- Hexagon outline gradient: light → mid → deep gold -->
+    <linearGradient id="hex" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f1e8c9"/>
+      <stop offset="55%" stop-color="#d8bb6a"/>
+      <stop offset="100%" stop-color="#9a6f29"/>
+    </linearGradient>
+    <!-- Cube top: brightest face -->
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f7f4ee"/>
+      <stop offset="100%" stop-color="#e6d49a"/>
+    </linearGradient>
+    <!-- Cube left: deep shadow face -->
+    <linearGradient id="left" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7a5621"/>
+      <stop offset="100%" stop-color="#412c12"/>
+    </linearGradient>
+    <!-- Cube right: mid-tone face -->
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d8bb6a"/>
+      <stop offset="100%" stop-color="#9a6f29"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark rounded tile -->
+  <rect width="80" height="80" rx="16" fill="#0a0c10"/>
+
+  <!-- Hexagon outline (flat-top), thick rounded stroke -->
+  <path d="M40 12 L64 25.5 L64 54.5 L40 68 L16 54.5 L16 25.5 Z"
+        fill="none" stroke="url(#hex)" stroke-width="3.4"
+        stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Isometric cube — three diamond faces meeting at center -->
+  <path d="M40 28 L52 34 L40 40 L28 34 Z" fill="url(#top)"/>
+  <path d="M28 34 L40 40 L40 54 L28 48 Z" fill="url(#left)"/>
+  <path d="M52 34 L52 48 L40 54 L40 40 Z" fill="url(#right)"/>
+
+  <!-- Subtle separator at the Y-junction -->
+  <path d="M28 34 L40 40 L52 34 M40 40 L40 54"
+        fill="none" stroke="#0a0c10" stroke-opacity="0.35"
+        stroke-width="0.7" stroke-linejoin="round"/>
+</svg>
