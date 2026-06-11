@@ -61,22 +61,33 @@ export default function DisclaimerGate({ children }) {
             <>
               <div className="mt-7 max-h-[42vh] overflow-y-auto pr-2 space-y-4 text-sm md:text-[15px] text-sand-50/75 leading-relaxed">
                 <p>
-                  This website is directed only at, and contains information about
-                  products and services only available to,{' '}
-                  <span className="text-sand-50">Professional Clients</span> or{' '}
-                  <span className="text-sand-50">Eligible Counterparties</span>.
+                  PQS Fund SPC (&ldquo;PQS Fund&rdquo;, the &ldquo;Fund&rdquo;, or the &ldquo;Company&rdquo;) is a regulated Cayman
+                  Islands investment fund established exclusively for{' '}
+                  <span className="text-sand-50">qualified, accredited, sophisticated, institutional, professional, and high-net-worth investors</span>{' '}
+                  who satisfy the eligibility requirements applicable in their respective jurisdictions.
                 </p>
                 <p>
-                  The information within this website is unsuitable for any party
-                  who does not qualify as a Professional Client or Eligible
-                  Counterparty and, by selecting <span className="text-sand-50">Accept</span>{' '}
-                  below, you confirm that you fall within one of these definitions.
+                  This website and the information contained herein are intended solely for persons who
+                  are legally permitted to receive such information and who qualify to invest in private
+                  and alternative investment funds. The information presented is not intended for{' '}
+                  <span className="text-sand-50">retail investors</span> or members of the general public.
                 </p>
                 <p>
-                  Premier Quantitative Strategies Fund SP cannot and will not
-                  conduct business with Retail Clients; as such the website is not
-                  intended for viewing by Retail Clients. If you are in any doubt,
-                  you should consult a financial adviser.
+                  By accessing this website, you acknowledge and represent that you are a qualified
+                  investor, that you understand the risks associated with alternative investments, and
+                  that you are legally entitled to access the information contained herein.
+                </p>
+                <p>
+                  The information within this website is unsuitable for any party who does not qualify
+                  as a Professional Client or Eligible Counterparty and, by selecting{' '}
+                  <span className="text-sand-50">Accept</span> below, you confirm that you fall within
+                  one of these definitions. Premier Quantitative Strategies Fund SP cannot and will not
+                  conduct business with Retail Clients; as such the website is not intended for viewing
+                  by Retail Clients. If you are in any doubt, you should consult a financial adviser.
+                </p>
+                <p>
+                  If you are uncertain as to whether you qualify as an eligible investor, you should seek
+                  independent legal, tax, financial, or investment advice before proceeding.
                 </p>
               </div>
 
