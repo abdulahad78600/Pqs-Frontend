@@ -105,7 +105,7 @@ export default function Navbar() {
                         transition={{ duration: 0.18 }}
                         className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[340px]"
                       >
-                        <div className="card-glass p-3 shadow-2xl shadow-black/40">
+                        <div className="card-glass p-3 shadow-2xl shadow-black/40 bg-ink-950">
                           <div className="px-3 pt-2 pb-3">
                             <span className="eyebrow">Company</span>
                           </div>
@@ -159,7 +159,7 @@ export default function Navbar() {
                         transition={{ duration: 0.18 }}
                         className="absolute left-1/2 -translate-x-1/2 top-full pt-3 w-[420px]"
                       >
-                        <div className="card-glass p-3 shadow-2xl shadow-black/40">
+                        <div className="card-glass p-3 shadow-2xl shadow-black/40 bg-ink-950">
                           <div className="px-3 pt-2 pb-3 flex items-center justify-between">
                             <span className="eyebrow">Active Offerings</span>
                             <Link to="/funds" className="text-xs text-gold-300 hover:text-gold-200">View all →</Link>
@@ -280,7 +280,7 @@ export default function Navbar() {
                     transition={{ duration: 0.18 }}
                     className="absolute right-0 top-full pt-3 w-64"
                   >
-                    <div className="card-glass p-2 shadow-2xl shadow-black/40">
+                    <div className="card-glass p-2 shadow-2xl shadow-black/40 bg-ink-950">
                       <div className="px-3 py-3 border-b border-sand-50/8">
                         <div className="text-sm text-sand-50">{user.name}</div>
                         <div className="text-[11px] text-sand-50/55 truncate">{user.email}</div>
