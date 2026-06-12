@@ -50,6 +50,11 @@ export default function Navbar() {
 
   useEffect(() => { setOpen(false); setFundsOpen(false); setCompanyOpen(false); setUserOpen(false) }, [pathname])
 
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   const doLogout = () => { logout(); navigate('/') }
 
   return (
@@ -313,7 +318,7 @@ export default function Navbar() {
         {open && (
           <motion.div
             initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-            className="lg:hidden overflow-hidden mt-3 mx-auto max-w-[calc(100%-1.5rem)] rounded-[28px] border border-sand-50/10 bg-ink-950/94 backdrop-blur-2xl shadow-2xl shadow-black/35"
+            className="lg:hidden mt-3 mx-auto max-w-[calc(100%-1.5rem)] rounded-[28px] border border-sand-50/10 bg-ink-950 shadow-2xl shadow-black/35 max-h-[80vh] overflow-y-auto"
           >
             <div className="container-page py-6 space-y-2">
               {!user && publicLinks.map((l) => (
