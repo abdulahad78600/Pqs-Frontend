@@ -1,11 +1,22 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, MapPin, Phone, ArrowUpRight, LogIn, UserPlus } from 'lucide-react'
+import { toast } from 'react-toastify'
 import Logo from './Logo.jsx'
 import { funds } from '../data/funds.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 
 export default function Footer() {
   const { user } = useAuth()
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault()
+    if (!newsletterEmail.trim()) return
+    toast.success("You're subscribed to receive quarterly briefings.")
+    setNewsletterEmail('')
+  }
+
   return (
     <footer className="relative mt-20 md:mt-32 border-t border-sand-50/8 bg-ink-950/60">
       <div className="absolute inset-x-0 top-0 divider-line" />
@@ -41,35 +52,33 @@ export default function Footer() {
 
           {user ? (
             <>
-              <div className="md:col-span-2">
+              <div className="md:col-span-4">
                 <div className="eyebrow mb-4">Company</div>
                 <ul className="space-y-2 text-[13px] md:text-sm">
                   <li><Link to="/about" className="text-sand-50/75 hover:text-gold-200">About</Link></li>
                   <li><Link to="/insights" className="text-sand-50/75 hover:text-gold-200">Insights</Link></li>
                   <li><Link to="/contact" className="text-sand-50/75 hover:text-gold-200">Contact</Link></li>
                 </ul>
-              </div>
 
-              <div className="md:col-span-3">
-                <div className="eyebrow mb-4">Funds</div>
+                <div className="eyebrow mt-6 mb-4">Funds</div>
                 <ul className="space-y-2 text-[13px] md:text-sm">
                   {funds.map((f) => (
                     <li key={f.slug}>
                       <Link to={`/funds/${f.slug}`} className="text-sand-50/75 hover:text-gold-200 inline-flex items-center gap-1">
-                        {f.subName || f.name} <ArrowUpRight size={12} />
+                        {f.name} <ArrowUpRight size={12} />
                       </Link>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="md:col-span-3">
+              <div className="md:col-span-4">
                 <div className="eyebrow mb-4">Stay informed</div>
-                <p className="text-[13px] md:text-sm text-sand-50/60 mb-3">Quarterly briefings on private credit and alternatives.</p>
-                <form onSubmit={(e) => e.preventDefault()} className="flex">
-                  <input type="email" placeholder="you@firm.com"
+                <p className="text-[13px] md:text-sm text-sand-50/60 mb-3">Receive quarterly briefings on private credit and alternatives.</p>
+                <form onSubmit={handleNewsletterSubmit} className="flex">
+                  <input type="email" required value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)} placeholder="you@firm.com"
                     className="flex-1 min-w-0 bg-ink-900 border border-sand-50/10 rounded-l-full px-4 py-2.5 text-[13px] md:text-sm text-sand-50 placeholder:text-sand-50/40 focus:outline-none focus:border-gold-500/50" />
-                  <button className="rounded-r-full px-4 py-2.5 bg-gradient-to-r from-gold-400 to-gold-600 text-ink-950 text-[13px] md:text-sm font-medium hover:from-gold-300 hover:to-gold-500 transition-colors flex-shrink-0">Join</button>
+                  <button type="submit" className="rounded-r-full px-4 py-2.5 bg-gradient-to-r from-gold-400 to-gold-600 text-ink-950 text-[13px] md:text-sm font-medium hover:from-gold-300 hover:to-gold-500 transition-colors flex-shrink-0">Join</button>
                 </form>
               </div>
             </>

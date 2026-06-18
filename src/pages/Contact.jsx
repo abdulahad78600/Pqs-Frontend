@@ -94,7 +94,7 @@ export default function Contact() {
           <div className="card-glass p-6">
             <div className="eyebrow mb-4">Direct Channels</div>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-3"><Mail size={14} className="text-gold-300" /> <a href="mailto:admin@pqs.fund" className="hover:text-gold-200">admin@pqs.fund</a></li>
+              <li className="flex items-center gap-3"><Mail size={14} className="text-gold-300" /> <a href="mailto:support@pqs.fund" className="hover:text-gold-200">support@pqs.fund</a></li>
               <li className="flex items-center gap-3"><Phone size={14} className="text-gold-300" /> <a href="tel:+442071675747" className="hover:text-gold-200">+44 (0) 207 167 5747</a></li>
               <li className="flex items-center gap-3"><MapPin size={14} className="text-gold-300" /> 21 Arlington St, London SW1A 1RD, UK</li>
             </ul>
