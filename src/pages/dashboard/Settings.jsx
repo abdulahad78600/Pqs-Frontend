@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { User, Bell, ShieldCheck, Globe, Save, CheckCircle2, AlertCircle, Mail, Phone, KeyRound, LogOut, Loader2, Sun, Moon, Palette } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { User, Bell, ShieldCheck, Globe, Save, CheckCircle2, AlertCircle, Mail, Phone, KeyRound, LogOut, Loader2, Sun, Moon, Palette, Eye, EyeOff, Check, X, ChevronDown } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { ROLE_DEFINITIONS } from '../../auth/roles.js'
@@ -83,6 +84,33 @@ export default function Settings() {
     currency: 'USD',
     language: 'English (US)'
   })
+
+  const [sessions, setSessions] = useState([
+    { id: 1, device: 'Chrome — macOS', loc: 'Toronto, ON', last: 'Active now', current: true },
+    { id: 2, device: 'Safari — iPhone', loc: 'Toronto, ON', last: '2h ago' }
+  ])
+
+  const revokeSession = (id) => {
+    setSessions((list) => list.filter((s) => s.id !== id))
+    toast.success('Session revoked.')
+  }
+
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
+  const passwordRequirements = getPasswordRequirements(passwordForm.next)
+  const passwordsMatch = passwordForm.confirm.length > 0 && passwordForm.next === passwordForm.confirm
+  const canUpdatePassword =
+    passwordForm.current.length > 0 &&
+    passwordRequirements.every((r) => r.met) &&
+    passwordsMatch
+
+  const handleUpdatePassword = () => {
+    if (!canUpdatePassword) return
+    // No "change password while signed in" endpoint exists yet on the backend
+    // (only the email reset-link flow). This validates client-side and
+    // confirms intent; wire to a real API once that route exists.
+    toast.success('Password requirements met. Submission will go live once the change-password API is available.')
+    setPasswordForm({ current: '', next: '', confirm: '' })
+  }
 
   const handleSave = async (e) => {
     e?.preventDefault()
@@ -177,8 +205,8 @@ export default function Settings() {
               <Field label="Organization">
                 <input className="input" value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} placeholder="Optional" />
               </Field>
-              <Field label="Phone">
-                <input className="input" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="+1 (555) 000-0000" />
+              <Field label="Phone" hint="Select your country code, then enter digits only.">
+                <PhoneField value={profile.phone} onChange={(phone) => setProfile({ ...profile, phone })} />
               </Field>
               <Field label="Short bio" full>
                 <textarea rows={3} className="input resize-none" value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} placeholder={`A short description visible to ${role?.label === 'Senior / Family' ? 'facility advisors' : 'fund managers and counterparties'}.`} />
@@ -195,11 +223,38 @@ export default function Settings() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <PanelCard eyebrow="Sign-in" title="Password">
             <div className="grid md:grid-cols-3 gap-4">
-              <Field label="Current password"><input type="password" className="input" placeholder="••••••••" /></Field>
-              <Field label="New password"><input type="password" className="input" placeholder="Min 8 chars" /></Field>
-              <Field label="Confirm new password"><input type="password" className="input" placeholder="Repeat" /></Field>
+              <Field label="Current password">
+                <PasswordInput value={passwordForm.current} onChange={(v) => setPasswordForm({ ...passwordForm, current: v })} placeholder="••••••••" />
+              </Field>
+              <Field label="New password">
+                <PasswordInput value={passwordForm.next} onChange={(v) => setPasswordForm({ ...passwordForm, next: v })} placeholder="Min 8 chars" />
+              </Field>
+              <Field label="Confirm new password">
+                <PasswordInput value={passwordForm.confirm} onChange={(v) => setPasswordForm({ ...passwordForm, confirm: v })} placeholder="Repeat" />
+              </Field>
             </div>
-            <button className="btn-primary text-xs py-2 mt-5"><KeyRound size={12}/> Update password</button>
+
+            {passwordForm.next && (
+              <ul className="mt-4 grid sm:grid-cols-2 gap-1.5">
+                {passwordRequirements.map((r) => (
+                  <li key={r.label} className={`flex items-center gap-2 text-xs ${r.met ? 'text-emerald-300' : 'text-sand-50/50'}`}>
+                    {r.met ? <Check size={13} /> : <X size={13} />} {r.label}
+                  </li>
+                ))}
+                <li className={`flex items-center gap-2 text-xs ${passwordsMatch ? 'text-emerald-300' : 'text-sand-50/50'}`}>
+                  {passwordsMatch ? <Check size={13} /> : <X size={13} />} Passwords match
+                </li>
+              </ul>
+            )}
+
+            <button
+              type="button"
+              onClick={handleUpdatePassword}
+              disabled={!canUpdatePassword}
+              className="btn-primary text-xs py-2 mt-5 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <KeyRound size={12}/> Update password
+            </button>
           </PanelCard>
 
           <AuthenticatorCard />
@@ -228,16 +283,13 @@ export default function Settings() {
 
           <PanelCard eyebrow="Active sessions" title="">
             <div className="space-y-3">
-              {[
-                { device: 'Chrome — macOS', loc: 'Toronto, ON', last: 'Active now', current: true },
-                { device: 'Safari — iPhone', loc: 'Toronto, ON', last: '2h ago' }
-              ].map((s, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-sand-50/8">
+              {sessions.map((s) => (
+                <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl border border-sand-50/8">
                   <div className="flex-1">
                     <div className="text-sm text-sand-50">{s.device} {s.current && <span className="ml-2 text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">This device</span>}</div>
                     <div className="text-[11px] text-sand-50/55">{s.loc} · {s.last}</div>
                   </div>
-                  {!s.current && <button className="text-xs text-rose-300 hover:text-rose-200">Revoke</button>}
+                  {!s.current && <button onClick={() => revokeSession(s.id)} className="text-xs text-rose-300 hover:text-rose-200">Revoke</button>}
                 </div>
               ))}
             </div>
@@ -250,7 +302,7 @@ export default function Settings() {
                 <div className="text-sm text-sand-50">Sign out everywhere</div>
                 <div className="text-[11px] text-sand-50/55">Force a sign-out across all devices and browser sessions.</div>
               </div>
-              <button onClick={logout} className="text-xs px-4 py-2 rounded-full border border-rose-500/40 text-rose-300 hover:bg-rose-500/10"><LogOut size={12}/> Sign out</button>
+              <button onClick={logout} className="inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded-full border border-rose-500/40 text-rose-300 hover:bg-rose-500/10"><LogOut size={12}/> Sign out</button>
             </div>
           </PanelCard>
         </motion.div>
@@ -264,7 +316,7 @@ export default function Settings() {
               <Toggle label="Product updates"     description="New features, releases, and scheduled maintenance."    value={notif.productUpdates}     onChange={(v) => setNotif({ ...notif, productUpdates: v })} />
               <Toggle label="Quarterly letters"    description="PDF investor letters and operations memos."             value={notif.quarterlyLetters}    onChange={(v) => setNotif({ ...notif, quarterlyLetters: v })} />
               <Toggle label="AI market insights"   description="Personalized signals based on your portfolio and role."  value={notif.aiInsights}          onChange={(v) => setNotif({ ...notif, aiInsights: v })} />
-              <Toggle label="SMS alerts"           description="Time-sensitive — capital calls, distributions, MFA."     value={notif.smsAlerts}           onChange={(v) => setNotif({ ...notif, smsAlerts: v })} />
+              <Toggle label="SMS alerts"           description="Time-sensitive — capital calls, distributions, MFA. Message and data rates may apply."     value={notif.smsAlerts}           onChange={(v) => setNotif({ ...notif, smsAlerts: v })} />
               <Toggle label="Marketing"            description="Occasional updates about new offerings."                  value={notif.marketing}           onChange={(v) => setNotif({ ...notif, marketing: v })} />
             </div>
           </PanelCard>
@@ -302,19 +354,30 @@ export default function Settings() {
           <PanelCard eyebrow="Localization" title="">
             <div className="grid md:grid-cols-3 gap-4">
               <Field label="Timezone">
-                <select className="input" value={prefs.timezone} onChange={(e) => setPrefs({ ...prefs, timezone: e.target.value })}>
-                  <option>America/Toronto</option><option>America/New_York</option><option>Europe/Lisbon</option><option>Asia/Dubai</option>
-                </select>
+                <Combobox
+                  value={prefs.timezone}
+                  onChange={(v) => setPrefs({ ...prefs, timezone: v })}
+                  options={[
+                    { value: 'America/Toronto',  label: 'North America/Toronto' },
+                    { value: 'America/New_York',  label: 'North America/New York' },
+                    { value: 'Europe/Lisbon',     label: 'Europe/Lisbon' },
+                    { value: 'Asia/Dubai',        label: 'Asia/Dubai' },
+                  ]}
+                />
               </Field>
               <Field label="Currency">
-                <select className="input" value={prefs.currency} onChange={(e) => setPrefs({ ...prefs, currency: e.target.value })}>
-                  <option>USD</option><option>CAD</option><option>EUR</option><option>AED</option>
-                </select>
+                <Combobox
+                  value={prefs.currency}
+                  onChange={(v) => setPrefs({ ...prefs, currency: v })}
+                  options={['USD', 'CAD', 'EUR', 'AED'].map((c) => ({ value: c, label: c }))}
+                />
               </Field>
               <Field label="Language">
-                <select className="input" value={prefs.language} onChange={(e) => setPrefs({ ...prefs, language: e.target.value })}>
-                  <option>English (US)</option><option>English (UK)</option><option>Português</option><option>العربية</option>
-                </select>
+                <Combobox
+                  value={prefs.language}
+                  onChange={(v) => setPrefs({ ...prefs, language: v })}
+                  options={['English (US)', 'English (UK)', 'Português', 'العربية'].map((l) => ({ value: l, label: l }))}
+                />
               </Field>
             </div>
           </PanelCard>
@@ -328,6 +391,166 @@ export default function Settings() {
         .input::placeholder { color: rgba(247,244,238,0.35); }
         .input:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
+    </div>
+  )
+}
+
+function getPasswordRequirements(password) {
+  return [
+    { label: 'At least 8 characters', met: password.length >= 8 },
+    { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
+    { label: 'One lowercase letter', met: /[a-z]/.test(password) },
+    { label: 'One number', met: /\d/.test(password) },
+    { label: 'One special character', met: /[^A-Za-z0-9]/.test(password) },
+  ]
+}
+
+function PasswordInput({ value, onChange, placeholder }) {
+  const [visible, setVisible] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        type={visible ? 'text' : 'password'}
+        className="input pr-10"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-sand-50/45 hover:text-sand-50/80 cursor-pointer"
+      >
+        {visible ? <Eye size={15} /> : <EyeOff size={15} />}
+      </button>
+    </div>
+  )
+}
+
+// Dial codes covering PQS's primary investor jurisdictions plus common
+// international ones. Value is the E.164 calling code (kept distinct from
+// "preferences > localization" which sets the display timezone, not phone country).
+const DIAL_CODES = [
+  { code: '+1',   label: 'North America (+1)' },
+  { code: '+44',  label: 'United Kingdom (+44)' },
+  { code: '+971', label: 'UAE (+971)' },
+  { code: '+65',  label: 'Singapore (+65)' },
+  { code: '+91',  label: 'India (+91)' },
+  { code: '+351', label: 'Portugal (+351)' },
+  { code: '+1242', label: 'Bahamas (+1242)' },
+  { code: '+1345', label: 'Cayman Islands (+1345)' },
+]
+
+function splitPhone(phone) {
+  const match = DIAL_CODES
+    .slice()
+    .sort((a, b) => b.code.length - a.code.length)
+    .find((d) => phone.startsWith(d.code))
+  if (match) return { dial: match.code, number: phone.slice(match.code.length).trim() }
+  return { dial: DIAL_CODES[0].code, number: phone.replace(/^\+/, '') }
+}
+
+// Generic dropdown that always opens below its trigger and never overlaps
+// it — replaces native <select> so we control positioning and hover state
+// consistently everywhere it's used (phone dial code, timezone, currency, language).
+// The menu is portaled to <body> because PanelCard uses overflow-hidden for
+// its decorative glow, which would otherwise clip an absolutely-positioned menu.
+function Combobox({ value, onChange, options }) {
+  const [open, setOpen] = useState(false)
+  const [rect, setRect] = useState(null)
+  const triggerRef = useRef(null)
+  const menuRef = useRef(null)
+  const current = options.find((o) => o.value === value)
+
+  useEffect(() => {
+    if (!open) return
+    const updateRect = () => {
+      const r = triggerRef.current?.getBoundingClientRect()
+      if (r) setRect(r)
+    }
+    updateRect()
+    const onClick = (e) => {
+      if (!triggerRef.current?.contains(e.target) && !menuRef.current?.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      window.removeEventListener('scroll', updateRect, true)
+      window.removeEventListener('resize', updateRect)
+    }
+  }, [open])
+
+  return (
+    <>
+      <button
+        type="button"
+        ref={triggerRef}
+        onClick={() => setOpen((v) => !v)}
+        className="input w-full flex items-center justify-between cursor-pointer"
+      >
+        <span className="truncate">{current?.label ?? value}</span>
+        <ChevronDown size={14} className={`text-sand-50/50 flex-shrink-0 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && rect && createPortal(
+        <AnimatePresence>
+          <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.12 }}
+            style={{ position: 'fixed', top: rect.bottom + 4, left: rect.left, width: rect.width, zIndex: 100 }}
+            className="max-h-56 overflow-y-auto card-glass py-1"
+          >
+            {options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => { onChange(o.value); setOpen(false) }}
+                className={`w-full text-left px-3 py-2 text-sm cursor-pointer hover:bg-gold-500/10 ${o.value === value ? 'text-gold-200' : 'text-sand-50/85'}`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
+  )
+}
+
+function PhoneField({ value, onChange }) {
+  const { dial, number } = splitPhone(value || '')
+  const numberRef = useRef(null)
+
+  // Always keep the dial code, even before any digits are typed — otherwise
+  // picking a code with an empty number field silently resets to the default.
+  // Changing the code later never touches the digits already typed.
+  const update = (nextDial, nextNumber) => {
+    const digits = nextNumber.replace(/\D/g, '')
+    onChange(`${nextDial} ${digits}`.trim())
+  }
+
+  return (
+    <div className="flex gap-2">
+      <div className="w-[7.5rem] flex-shrink-0">
+        <Combobox
+          value={dial}
+          onChange={(nextDial) => { update(nextDial, number); numberRef.current?.focus() }}
+          options={DIAL_CODES.map((d) => ({ value: d.code, label: d.code }))}
+        />
+      </div>
+      <input
+        ref={numberRef}
+        type="tel"
+        inputMode="numeric"
+        className="input flex-1"
+        value={number}
+        onChange={(e) => update(dial, e.target.value.replace(/\D/g, ''))}
+        placeholder="555 000 0000"
+      />
     </div>
   )
 }

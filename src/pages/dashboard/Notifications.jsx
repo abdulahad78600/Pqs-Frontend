@@ -3,10 +3,12 @@ import { motion } from 'framer-motion'
 import { Bell, CheckCheck, RefreshCw, AlertCircle } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { PanelCard } from '../../components/dashboard/widgets.jsx'
+import { useDashboardBadges } from '../../components/dashboard/DashboardBadgesContext.jsx'
 import { fetchNotifications, markAllNotificationsRead } from '../../utils/api.js'
 import { fmtRelative } from '../../utils/format.js'
 
 export default function NotificationsPage() {
+  const { markAllRead } = useDashboardBadges()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -37,6 +39,7 @@ export default function NotificationsPage() {
         toast.success(data.message || 'All notifications marked as read.')
         setUnreadCount(0)
         setNotifications((list) => list.map((n) => ({ ...n, isRead: true })))
+        markAllRead()
       }
     } catch {
       toast.error("Failed to mark notifications as read.")

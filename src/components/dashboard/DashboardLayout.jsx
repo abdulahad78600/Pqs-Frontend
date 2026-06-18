@@ -1,22 +1,25 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import {
-  LogOut, Settings as SettingsIcon, User, Bell, Menu, X, Sun, Moon,
-  ChevronDown, UserCircle, KeyRound,
-} from 'lucide-react'
+import { useState } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { LogOut, Settings as SettingsIcon, User, Menu, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../../auth/AuthContext.jsx'
-import { useTheme } from '../../theme/ThemeContext.jsx'
 import { dashboardNavSections } from './nav.js'
-import { useDashboardBadges } from './useDashboardBadges.js'
+import { DashboardBadgesProvider, useDashboardBadges } from './DashboardBadgesContext.jsx'
 
 export default function DashboardLayout() {
+  return (
+    <DashboardBadgesProvider>
+      <DashboardLayoutInner />
+    </DashboardBadgesProvider>
+  )
+}
+
+function DashboardLayoutInner() {
   const { user, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const badges = useDashboardBadges()
+  const { badges } = useDashboardBadges()
   if (!user) return null
 
   const doLogout = () => { logout(); navigate('/') }
@@ -43,25 +46,6 @@ export default function DashboardLayout() {
             >
               <Menu size={18} />
             </button>
-            <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-              <button
-                onClick={toggleTheme}
-                aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-                title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-                className="w-10 h-10 rounded-full border border-sand-50/10 grid place-items-center text-sand-50/70 hover:text-gold-200 hover:border-gold-500/40"
-              >
-                {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-              </button>
-              <Link to="/dashboard/notifications" className="w-10 h-10 rounded-full border border-sand-50/10 grid place-items-center text-sand-50/70 hover:text-gold-200 hover:border-gold-500/40 relative">
-                <Bell size={16} />
-                {badges.unread > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gold-500 text-ink-950 text-[10px] font-medium grid place-items-center border-2 border-ink-950">
-                    {badges.unread > 99 ? '99+' : badges.unread}
-                  </span>
-                )}
-              </Link>
-              <Link to="/" className="hidden sm:inline-flex btn-ghost text-xs py-2">View site</Link>
-            </div>
           </div>
 
           <Outlet />
@@ -107,7 +91,7 @@ export default function DashboardLayout() {
 function Sidebar({ user, badges, onNavigate, onLogout }) {
   return (
     <div className="card-glass p-5">
-      <UserBlock user={user} onSignOut={onLogout} />
+      <UserBlock user={user} />
 
       <nav className="mt-5 space-y-5">
         {dashboardNavSections.map((section) => (
@@ -147,23 +131,11 @@ function Sidebar({ user, badges, onNavigate, onLogout }) {
   )
 }
 
-// =========================== User block + dropdown ===========================
-function UserBlock({ user, onSignOut }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onClick = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onClick)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onClick)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
+// =========================== User block ===========================
+// Static identity display only — account/session actions live in the
+// single top-right user menu (see Navbar.jsx) to avoid a duplicate
+// user-select control on the page.
+function UserBlock({ user }) {
   const initials = (user.name || user.email || 'U')
     .split(/[\s@.]+/)
     .filter(Boolean)
@@ -172,45 +144,12 @@ function UserBlock({ user, onSignOut }) {
     .join('')
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 pb-5 border-b border-sand-50/8 text-left group"
-      >
-        <Avatar initials={initials} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1 text-sand-50 truncate">
-            <span className="font-display text-base truncate">{user.name || 'Investor'}</span>
-            <ChevronDown
-              size={14}
-              className={`text-sand-50/55 flex-shrink-0 transition-transform group-hover:text-gold-300 ${open ? 'rotate-180' : ''}`}
-            />
-          </div>
-          <div className="text-xs text-sand-50/55 truncate">{user.email || '—'}</div>
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.12 }}
-            className="absolute z-30 left-0 right-0 top-[68px] card-glass overflow-hidden py-1"
-          >
-            <UserMenuItem to="/dashboard/settings" icon={UserCircle} label="Profile & preferences" onClick={() => setOpen(false)} />
-            <UserMenuItem to="/dashboard/settings"      icon={KeyRound}    label="Security" onClick={() => setOpen(false)} />
-            <UserMenuItem to="/dashboard/notifications" icon={Bell}        label="Notifications" onClick={() => setOpen(false)} />
-            <div className="border-t border-sand-50/8 my-1" />
-            <button
-              onClick={() => { setOpen(false); onSignOut() }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-300/85 hover:bg-rose-500/10 hover:text-rose-200"
-            >
-              <LogOut size={14} /> Sign out
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="flex items-center gap-3 pb-5 border-b border-sand-50/8">
+      <Avatar initials={initials} />
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-base text-sand-50 truncate">{user.name || 'Investor'}</div>
+        <div className="text-xs text-sand-50/55 truncate">{user.email || '—'}</div>
+      </div>
     </div>
   )
 }
@@ -221,19 +160,6 @@ function Avatar({ initials }) {
       {initials || <User size={16} />}
       <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-ink-950" />
     </div>
-  )
-}
-
-function UserMenuItem({ to, icon: Icon, label, onClick }) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 text-sm text-sand-50/85 hover:bg-gold-500/10 hover:text-sand-50"
-    >
-      <Icon size={14} className="text-gold-300/80" />
-      {label}
-    </Link>
   )
 }
 

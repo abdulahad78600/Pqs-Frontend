@@ -21,7 +21,17 @@ const companyItems = [
   { to: '/team',       label: 'Team',       desc: 'Compliance & Support specialists',     icon: Users }
 ]
 
-const links = [
+const loggedOutLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/about', label: 'Company', kind: 'company' },
+  { to: '/funds', label: 'Funds', kind: 'funds' },
+  { to: '/insights', label: 'Insights' },
+  { to: '/contact', label: 'Contact' }
+]
+
+// Logged-in investors land on their dashboard, not the public marketing page.
+const loggedInLinks = [
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/', label: 'Home' },
   { to: '/about', label: 'Company', kind: 'company' },
   { to: '/funds', label: 'Funds', kind: 'funds' },
@@ -40,6 +50,8 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const role = user ? ROLE_DEFINITIONS[user.role] : null
+  const links = user ? loggedInLinks : loggedOutLinks
+  const homeTo = user ? '/dashboard' : '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -70,7 +82,7 @@ export default function Navbar() {
             : 'border-sand-50/10 bg-ink-950/98 backdrop-blur-2xl'
         } px-5 md:px-7`}
       >
-        <Link to="/" className="hover:opacity-90 transition-opacity"><Logo /></Link>
+        <Link to={homeTo} className="hover:opacity-90 transition-opacity"><Logo /></Link>
 
         <nav className="hidden lg:flex items-center gap-8">
           {!user && publicLinks.map((l) => (
@@ -228,7 +240,7 @@ export default function Navbar() {
               )
             }
             return (
-              <NavLink key={l.to} to={l.to} end={l.to === '/'}
+              <NavLink key={l.to} to={l.to} end
                 className={({ isActive }) =>
                   `text-sm tracking-wide transition-colors ${
                     isActive ? 'text-gold-300' : 'text-sand-50/80 hover:text-gold-200'
@@ -294,9 +306,9 @@ export default function Navbar() {
                       <Link to="/dashboard" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/5 text-sm text-sand-50/85">
                         <LayoutDashboard size={14}/> Dashboard
                       </Link>
-                      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sand-50/5 text-sm text-sand-50/85">
-                        <User size={14}/> Profile
-                      </button>
+                      <Link to="/dashboard/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sand-50/5 text-sm text-sand-50/85">
+                        <User size={14}/> Settings &amp; Security
+                      </Link>
                       <button onClick={doLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-rose-500/10 text-sm text-rose-300/85">
                         <LogOut size={14}/> Sign out
                       </button>
@@ -376,7 +388,7 @@ export default function Navbar() {
                   ]
                 }
                 return [
-                  <NavLink key={l.to} to={l.to} end={l.to === '/'}
+                  <NavLink key={l.to} to={l.to} end
                     className={({ isActive }) =>
                       `block py-3 text-sm border-b border-sand-50/5 ${isActive ? 'text-gold-300' : 'text-sand-50/85'}`
                     }

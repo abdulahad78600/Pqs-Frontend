@@ -152,7 +152,7 @@ export default function InvestorOverview() {
             Welcome back, <span className="gold-text">{(user?.name || user?.email || 'Investor').split(' ')[0]}</span>.
           </h1>
           <p className="mt-3 max-w-3xl text-sm md:text-base text-sand-50/65 leading-relaxed">
-            Your account has successfully cleared our Kyc. Wallet management, subscription
+            Your account has successfully cleared our KYC. Wallet management, subscription
             actions, reporting, and withdrawal requests are available.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

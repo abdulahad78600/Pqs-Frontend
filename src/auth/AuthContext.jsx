@@ -201,6 +201,24 @@ export function AuthProvider({ children }) {
     saveAuth(null)
   }, [])
 
+  // Auto sign-out after 2 hours of inactivity, so an unattended open tab
+  // doesn't leave a session live indefinitely.
+  useEffect(() => {
+    if (!user) return
+    const INACTIVITY_LIMIT_MS = 2 * 60 * 60 * 1000
+    let timer = setTimeout(logout, INACTIVITY_LIMIT_MS)
+    const resetTimer = () => {
+      clearTimeout(timer)
+      timer = setTimeout(logout, INACTIVITY_LIMIT_MS)
+    }
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart']
+    events.forEach((e) => window.addEventListener(e, resetTimer))
+    return () => {
+      clearTimeout(timer)
+      events.forEach((e) => window.removeEventListener(e, resetTimer))
+    }
+  }, [user, logout])
+
   const updateProfile = useCallback((patch) => {
     if (!user) return
     const next = { ...user, ...patch }
