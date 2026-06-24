@@ -115,6 +115,12 @@ export default function Settings() {
   const handleSave = async (e) => {
     e?.preventDefault()
     if (!user?._id) return
+    const { dial, number } = splitPhone(profile.phone || '')
+    const phoneError = phoneNumberError(dial, number)
+    if (phoneError) {
+      toast.error(phoneError)
+      return
+    }
     setSaving(true)
     try {
       const data = await updateUserProfile(user._id, {
@@ -390,6 +396,8 @@ export default function Settings() {
         .input:focus { outline: none; border-color: rgba(216,187,106,0.5); box-shadow: 0 0 0 3px rgba(216,187,106,0.08); }
         .input::placeholder { color: rgba(247,244,238,0.35); }
         .input:disabled { opacity: 0.6; cursor: not-allowed; }
+        .input-error { border-color: rgba(244,63,94,0.6) !important; }
+        .input-error:focus { box-shadow: 0 0 0 3px rgba(244,63,94,0.12); }
       `}</style>
     </div>
   )
@@ -431,15 +439,17 @@ function PasswordInput({ value, onChange, placeholder }) {
 // Dial codes covering PQS's primary investor jurisdictions plus common
 // international ones. Value is the E.164 calling code (kept distinct from
 // "preferences > localization" which sets the display timezone, not phone country).
+// `digits` is the national significant number length (i.e. excluding the dial
+// code itself) used to validate the number field per ITU-T E.164 / national plans.
 const DIAL_CODES = [
-  { code: '+1',   label: 'North America (+1)' },
-  { code: '+44',  label: 'United Kingdom (+44)' },
-  { code: '+971', label: 'UAE (+971)' },
-  { code: '+65',  label: 'Singapore (+65)' },
-  { code: '+91',  label: 'India (+91)' },
-  { code: '+351', label: 'Portugal (+351)' },
-  { code: '+1242', label: 'Bahamas (+1242)' },
-  { code: '+1345', label: 'Cayman Islands (+1345)' },
+  { code: '+1',   label: 'North America (+1)',     digits: 10 },
+  { code: '+44',  label: 'United Kingdom (+44)',    digits: 10 },
+  { code: '+971', label: 'UAE (+971)',              digits: 9 },
+  { code: '+65',  label: 'Singapore (+65)',         digits: 8 },
+  { code: '+91',  label: 'India (+91)',             digits: 10 },
+  { code: '+351', label: 'Portugal (+351)',         digits: 9 },
+  { code: '+1242', label: 'Bahamas (+1242)',        digits: 7 },
+  { code: '+1345', label: 'Cayman Islands (+1345)', digits: 7 },
 ]
 
 function splitPhone(phone) {
@@ -449,6 +459,19 @@ function splitPhone(phone) {
     .find((d) => phone.startsWith(d.code))
   if (match) return { dial: match.code, number: phone.slice(match.code.length).trim() }
   return { dial: DIAL_CODES[0].code, number: phone.replace(/^\+/, '') }
+}
+
+// Returns an error message if `number` doesn't have the digit count required
+// by `dial`'s national plan, or null if valid (empty number is left to the
+// required-field check rather than reported here).
+function phoneNumberError(dial, number) {
+  if (!number) return null
+  const expected = DIAL_CODES.find((d) => d.code === dial)?.digits
+  if (!expected) return null
+  if (number.length !== expected) {
+    return `Enter exactly ${expected} digits for ${dial}.`
+  }
+  return null
 }
 
 // Generic dropdown that always opens below its trigger and never overlaps
@@ -524,33 +547,40 @@ function Combobox({ value, onChange, options }) {
 function PhoneField({ value, onChange }) {
   const { dial, number } = splitPhone(value || '')
   const numberRef = useRef(null)
+  const maxDigits = DIAL_CODES.find((d) => d.code === dial)?.digits
+  const error = phoneNumberError(dial, number)
 
   // Always keep the dial code, even before any digits are typed — otherwise
   // picking a code with an empty number field silently resets to the default.
   // Changing the code later never touches the digits already typed.
   const update = (nextDial, nextNumber) => {
-    const digits = nextNumber.replace(/\D/g, '')
+    const nextMax = DIAL_CODES.find((d) => d.code === nextDial)?.digits
+    const digits = nextNumber.replace(/\D/g, '').slice(0, nextMax)
     onChange(`${nextDial} ${digits}`.trim())
   }
 
   return (
-    <div className="flex gap-2">
-      <div className="w-[7.5rem] flex-shrink-0">
-        <Combobox
-          value={dial}
-          onChange={(nextDial) => { update(nextDial, number); numberRef.current?.focus() }}
-          options={DIAL_CODES.map((d) => ({ value: d.code, label: d.code }))}
+    <div>
+      <div className="flex gap-2">
+        <div className="w-[7.5rem] flex-shrink-0">
+          <Combobox
+            value={dial}
+            onChange={(nextDial) => { update(nextDial, number); numberRef.current?.focus() }}
+            options={DIAL_CODES.map((d) => ({ value: d.code, label: d.code }))}
+          />
+        </div>
+        <input
+          ref={numberRef}
+          type="tel"
+          inputMode="numeric"
+          maxLength={maxDigits}
+          className={`input flex-1 ${error ? 'input-error' : ''}`}
+          value={number}
+          onChange={(e) => update(dial, e.target.value.replace(/\D/g, ''))}
+          placeholder="555 000 0000"
         />
       </div>
-      <input
-        ref={numberRef}
-        type="tel"
-        inputMode="numeric"
-        className="input flex-1"
-        value={number}
-        onChange={(e) => update(dial, e.target.value.replace(/\D/g, ''))}
-        placeholder="555 000 0000"
-      />
+      {error && <span className="block mt-1 text-[11px] text-rose-400">{error}</span>}
     </div>
   )
 }
