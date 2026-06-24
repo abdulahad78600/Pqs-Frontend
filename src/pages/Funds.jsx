@@ -28,8 +28,8 @@ export default function Funds() {
       </section>
 
       {/* Consolidated fund cards */}
-      <section className="container-page pb-20 md:pb-24">
-        <div className="grid lg:grid-cols-3 gap-6">
+      <section className="container-page pt-6 md:pt-10 pb-20 md:pb-24">
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
           {orderedFunds.map((f, i) => {
             const tone = riskTone[f.riskProfile] || riskTone.Moderate
             const ToneIcon = tone.icon
