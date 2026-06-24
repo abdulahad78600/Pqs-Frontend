@@ -153,11 +153,13 @@ function OpportunityCard({ opportunity: o, index: i, expanded, onToggleExpanded 
         />
         <div className={`absolute inset-0 bg-gradient-to-tr ${o.accentFrom} ${o.accentTo} mix-blend-overlay`} />
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
-        <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-ink-950/70 border border-sand-50/15 text-[10px] uppercase tracking-widest text-gold-200">
-          {o.category}
-        </div>
-        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full border text-[10px] uppercase tracking-widest font-semibold inline-flex items-center gap-1.5 backdrop-blur-sm shadow-lg shadow-ink-950/40 ${tone.tag}`}>
-          <ToneIcon size={11} /> {o.riskProfile} risk
+        <div className="absolute top-4 left-4 right-4 flex flex-wrap items-start justify-between gap-2">
+          <div className="px-3 py-1 rounded-full bg-ink-950/70 border border-sand-50/15 text-[10px] uppercase tracking-widest text-gold-200">
+            {o.category}
+          </div>
+          <div className={`px-3 py-1 rounded-full border text-[10px] uppercase tracking-widest font-semibold inline-flex items-center gap-1.5 backdrop-blur-sm shadow-lg shadow-ink-950/40 ${tone.tag}`}>
+            <ToneIcon size={11} /> {o.riskProfile} risk
+          </div>
         </div>
       </div>
 
