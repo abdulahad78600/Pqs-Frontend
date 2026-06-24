@@ -134,7 +134,7 @@ function Sidebar({ user, badges, onNavigate, onLogout }) {
 // =========================== User block ===========================
 // Static identity display only — account/session actions live in the
 // single top-right user menu (see Navbar.jsx) to avoid a duplicate
-// user-select control on the page.
+// user-select control on the page....
 function UserBlock({ user }) {
   const initials = (user.name || user.email || 'U')
     .split(/[\s@.]+/)
