@@ -87,7 +87,7 @@ function DashboardLayoutInner() {
   )
 }
 
-// =========================== Sidebar ===========================
+
 function Sidebar({ user, badges, onNavigate, onLogout }) {
   return (
     <div className="card-glass p-5">
