@@ -217,6 +217,7 @@ export default function Navbar() {
                                 <div className="text-xs text-sand-50/50 truncate">Investor presentation — platform & fund strategies</div>
                               </div>
                             </a>
+                            {/* Individual fund list removed from this dropdown per request — kept here in case it's needed again.
                             <div className="my-1 border-t border-sand-50/8" />
                             {[...funds].reverse().map((f) => (
                               <Link key={f.slug} to={`/funds/${f.slug}`}
@@ -231,6 +232,7 @@ export default function Navbar() {
                                 </div>
                               </Link>
                             ))}
+                            */}
                           </div>
                         </div>
                       </motion.div>
