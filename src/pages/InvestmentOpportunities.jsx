@@ -1,23 +1,15 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowRight, ShieldCheck, TrendingUp, Layers, FlaskConical, ExternalLink, Lock, KeyRound,
-  ChevronDown, Download
+  ArrowRight, ShieldCheck, TrendingUp, Layers, ExternalLink, ChevronDown, Download
 } from 'lucide-react'
 import SectionHeader from '../components/SectionHeader.jsx'
 import AmbientBackdrop from '../components/AmbientBackdrop.jsx'
 import { opportunities } from '../data/opportunities.js'
-import { useAuth } from '../auth/AuthContext.jsx'
-import { trackEvent } from '../utils/tracking.js'
 import { generateFundFactSheet } from '../utils/factSheetPdf.js'
-
-const CANA_EXTRACT_URL = 'https://stately-pudding-dc7bac.netlify.app/'
-
-// TEMPORARY mock credentials so prospects/non-clients can preview Cana Extract.
-// ⚠️ This is a CLIENT-SIDE check only — anyone can read these in the JS bundle.
-// It is NOT secure and must be replaced with a real backend/Netlify gate before
-// it protects anything sensitive. See the note in CanaExtractGate below.
-const GUEST_CREDS = { id: 'cana-guest', password: 'preview2026' }
+// import { useAuth } from '../auth/AuthContext.jsx'
+// import { trackEvent } from '../utils/tracking.js'
 
 const riskTone = {
   Conservative: { tag: 'bg-emerald-500/25 text-emerald-100 border-emerald-400/60', icon: ShieldCheck },
@@ -25,91 +17,99 @@ const riskTone = {
   High:         { tag: 'bg-rose-500/25 text-rose-100 border-rose-400/60', icon: TrendingUp }
 }
 
-function CanaExtractAccess() {
-  const { user } = useAuth()
-  const [open, setOpen] = useState(false)
-  const [id, setId] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [unlocked, setUnlocked] = useState(false)
-
-  const visit = (via) => {
-    trackEvent('cana_extract_open', { via, userId: user?.id || null, email: user?.email || null })
-    window.open(CANA_EXTRACT_URL, '_blank', 'noopener,noreferrer')
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // MOCK CHECK — replace with a real backend call before production.
-    if (id.trim() === GUEST_CREDS.id && password === GUEST_CREDS.password) {
-      setError('')
-      setUnlocked(true)
-      trackEvent('cana_extract_guest_login', { id: id.trim(), result: 'success' })
-      visit('guest')
-    } else {
-      setError('Invalid ID or password. Please check your access details.')
-      trackEvent('cana_extract_guest_login', { id: id.trim(), result: 'failed' })
-    }
-  }
-
-  return user ? (
-    <button
-      type="button"
-      onClick={() => visit('client')}
-      className="mt-5 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gold-300 hover:text-gold-200 self-start"
-    >
-      Visit Cana Extract <ExternalLink size={14} />
-    </button>
-  ) : unlocked ? (
-    <button
-      type="button"
-      onClick={() => visit('guest')}
-      className="mt-5 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-emerald-300 hover:text-emerald-200 self-start"
-    >
-      Access granted — open Cana Extract <ExternalLink size={14} />
-    </button>
-  ) : (
-    <div className="mt-5 pt-5 border-t border-sand-50/8">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-300 hover:text-gold-200"
-        >
-          <Lock size={13} /> Non-client access
-        </button>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="text-[10px] uppercase tracking-widest text-sand-50/45 flex items-center gap-1.5">
-            <KeyRound size={12} /> Enter your access credentials
-          </div>
-          <input
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            placeholder="User ID"
-            autoComplete="username"
-            className="w-full rounded-lg bg-ink-950/60 border border-sand-50/12 px-3 py-2 text-sm text-sand-50 placeholder:text-sand-50/35 focus:outline-none focus:border-gold-500/50"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            autoComplete="current-password"
-            className="w-full rounded-lg bg-ink-950/60 border border-sand-50/12 px-3 py-2 text-sm text-sand-50 placeholder:text-sand-50/35 focus:outline-none focus:border-gold-500/50"
-          />
-          {error && <div className="text-xs text-rose-300">{error}</div>}
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-gold-500/15 border border-gold-500/30 px-3 py-2 text-sm font-medium text-gold-200 hover:bg-gold-500/25 transition-colors inline-flex items-center justify-center gap-1.5"
-          >
-            Unlock access <ArrowRight size={14} />
-          </button>
-        </form>
-      )}
-    </div>
-  )
-}
+// const CANA_EXTRACT_URL = 'https://stately-pudding-dc7bac.netlify.app/'
+//
+// // TEMPORARY mock credentials so prospects/non-clients can preview Cana Extract.
+// // ⚠️ This is a CLIENT-SIDE check only — anyone can read these in the JS bundle.
+// // It is NOT secure and must be replaced with a real backend/Netlify gate before
+// // it protects anything sensitive. See the note in CanaExtractGate below.
+// const GUEST_CREDS = { id: 'cana-guest', password: 'preview2026' }
+//
+// function CanaExtractAccess() {
+//   const { user } = useAuth()
+//   const [open, setOpen] = useState(false)
+//   const [id, setId] = useState('')
+//   const [password, setPassword] = useState('')
+//   const [error, setError] = useState('')
+//   const [unlocked, setUnlocked] = useState(false)
+//
+//   const visit = (via) => {
+//     trackEvent('cana_extract_open', { via, userId: user?.id || null, email: user?.email || null })
+//     window.open(CANA_EXTRACT_URL, '_blank', 'noopener,noreferrer')
+//   }
+//
+//   const handleSubmit = (e) => {
+//     e.preventDefault()
+//     // MOCK CHECK — replace with a real backend call before production.
+//     if (id.trim() === GUEST_CREDS.id && password === GUEST_CREDS.password) {
+//       setError('')
+//       setUnlocked(true)
+//       trackEvent('cana_extract_guest_login', { id: id.trim(), result: 'success' })
+//       visit('guest')
+//     } else {
+//       setError('Invalid ID or password. Please check your access details.')
+//       trackEvent('cana_extract_guest_login', { id: id.trim(), result: 'failed' })
+//     }
+//   }
+//
+//   return user ? (
+//     <button
+//       type="button"
+//       onClick={() => visit('client')}
+//       className="mt-5 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gold-300 hover:text-gold-200 self-start"
+//     >
+//       Visit Cana Extract <ExternalLink size={14} />
+//     </button>
+//   ) : unlocked ? (
+//     <button
+//       type="button"
+//       onClick={() => visit('guest')}
+//       className="mt-5 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-emerald-300 hover:text-emerald-200 self-start"
+//     >
+//       Access granted — open Cana Extract <ExternalLink size={14} />
+//     </button>
+//   ) : (
+//     <div className="mt-5 pt-5 border-t border-sand-50/8">
+//       {!open ? (
+//         <button
+//           type="button"
+//           onClick={() => setOpen(true)}
+//           className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-300 hover:text-gold-200"
+//         >
+//           <Lock size={13} /> Non-client access
+//         </button>
+//       ) : (
+//         <form onSubmit={handleSubmit} className="space-y-3">
+//           <div className="text-[10px] uppercase tracking-widest text-sand-50/45 flex items-center gap-1.5">
+//             <KeyRound size={12} /> Enter your access credentials
+//           </div>
+//           <input
+//             value={id}
+//             onChange={(e) => setId(e.target.value)}
+//             placeholder="User ID"
+//             autoComplete="username"
+//             className="w-full rounded-lg bg-ink-950/60 border border-sand-50/12 px-3 py-2 text-sm text-sand-50 placeholder:text-sand-50/35 focus:outline-none focus:border-gold-500/50"
+//           />
+//           <input
+//             type="password"
+//             value={password}
+//             onChange={(e) => setPassword(e.target.value)}
+//             placeholder="Password"
+//             autoComplete="current-password"
+//             className="w-full rounded-lg bg-ink-950/60 border border-sand-50/12 px-3 py-2 text-sm text-sand-50 placeholder:text-sand-50/35 focus:outline-none focus:border-gold-500/50"
+//           />
+//           {error && <div className="text-xs text-rose-300">{error}</div>}
+//           <button
+//             type="submit"
+//             className="w-full rounded-lg bg-gold-500/15 border border-gold-500/30 px-3 py-2 text-sm font-medium text-gold-200 hover:bg-gold-500/25 transition-colors inline-flex items-center justify-center gap-1.5"
+//           >
+//             Unlock access <ArrowRight size={14} />
+//           </button>
+//         </form>
+//       )}
+//     </div>
+//   )
+// }
 
 // Earlier version of the card linked out to the opportunity's underlying fund
 // page (via getFundBySlug(o.fundSlug)) and showed that fund's name/risk badge
@@ -165,7 +165,9 @@ function OpportunityCard({ opportunity: o, index: i, expanded, onToggleExpanded 
 
       <div className="p-6 flex-1 flex flex-col">
         <h3 className="font-display text-2xl text-sand-50">{o.name}</h3>
-        <p className="mt-2 text-sm text-sand-50/65 leading-relaxed flex-1">{o.tagline}</p>
+        {(Array.isArray(o.tagline) ? o.tagline : [o.tagline]).map((p) => (
+          <p key={p} className="mt-2 text-sm text-sand-50/65 leading-relaxed">{p}</p>
+        ))}
 
         <div className="mt-5 space-y-2">
           {o.highlights.map((h) => (
@@ -176,20 +178,37 @@ function OpportunityCard({ opportunity: o, index: i, expanded, onToggleExpanded 
           ))}
         </div>
 
+        <div className="flex-1" />
+
         {/* Click for full Fund Details */}
         <div className="mt-5 pt-5 border-t border-sand-50/8">
-          <button
-            type="button"
-            onClick={onToggleExpanded}
-            className="btn-primary text-sm justify-center w-full"
-            aria-expanded={expanded}
-          >
-            Click for full Fund Details
-            <ChevronDown size={14} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
-          </button>
+          {o.externalUrl ? (
+            <a
+              href={o.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary text-sm justify-center w-full"
+            >
+              Click for full Fund Details <ExternalLink size={14} />
+            </a>
+          ) : o.details ? (
+            <Link to={`/investment-opportunities/${o.slug}`} className="btn-primary text-sm justify-center w-full">
+              Click for full Fund Details <ArrowRight size={14} />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onToggleExpanded}
+              className="btn-primary text-sm justify-center w-full"
+              aria-expanded={expanded}
+            >
+              Click for full Fund Details
+              <ChevronDown size={14} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </button>
+          )}
 
           <AnimatePresence initial={false}>
-            {expanded && (
+            {!o.details && !o.externalUrl && expanded && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
@@ -212,7 +231,7 @@ function OpportunityCard({ opportunity: o, index: i, expanded, onToggleExpanded 
                     </div>
                   </div>
 
-                  {o.slug === 'cannabis-extraction-sp' && (
+                  {/* {o.slug === 'cannabis-extraction-sp' && (
                     <div className="pt-3 border-t border-sand-50/8">
                       <div className="text-[10px] uppercase tracking-widest text-sand-50/45 flex items-center gap-1.5">
                         <FlaskConical size={12} /> Cana Extract access
@@ -223,7 +242,7 @@ function OpportunityCard({ opportunity: o, index: i, expanded, onToggleExpanded 
                       </p>
                       <CanaExtractAccess />
                     </div>
-                  )}
+                  )} */}
 
                   {/* Scroll down for Download Fact Sheet */}
                   <div className="pt-3 border-t border-sand-50/8">
@@ -267,7 +286,7 @@ export default function InvestmentOpportunities() {
           <span className="eyebrow">Segregated Portfolios</span>
           <span className="h-px flex-1 bg-sand-50/8" />
         </div>
-        <div className={`grid lg:grid-cols-3 gap-6 md:gap-8 ${expandedSlug ? 'items-start' : 'items-stretch'}`}>
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8 items-stretch">
           {opportunities.map((o, i) => (
             <OpportunityCard
               key={o.slug}
