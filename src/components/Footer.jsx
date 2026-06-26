@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, MapPin, Phone, ArrowUpRight, LogIn, UserPlus } from 'lucide-react'
+import { Mail, MapPin, Phone, LogIn, UserPlus } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Logo from './Logo.jsx'
-import { funds } from '../data/funds.js'
 import { useAuth } from '../auth/AuthContext.jsx'
 
 export default function Footer() {
@@ -58,17 +57,6 @@ export default function Footer() {
                   <li><Link to="/about" className="text-sand-50/75 hover:text-gold-200">About</Link></li>
                   <li><Link to="/insights" className="text-sand-50/75 hover:text-gold-200">Insights</Link></li>
                   <li><Link to="/contact" className="text-sand-50/75 hover:text-gold-200">Contact</Link></li>
-                </ul>
-
-                <div className="eyebrow mt-6 mb-4">Funds</div>
-                <ul className="space-y-2 text-[13px] md:text-sm">
-                  {funds.map((f) => (
-                    <li key={f.slug}>
-                      <Link to={`/funds/${f.slug}`} className="text-sand-50/75 hover:text-gold-200 inline-flex items-center gap-1">
-                        {f.name} <ArrowUpRight size={12} />
-                      </Link>
-                    </li>
-                  ))}
                 </ul>
               </div>
 

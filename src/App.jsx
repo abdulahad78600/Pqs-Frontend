@@ -8,6 +8,7 @@ import GetStarted from './pages/GetStarted.jsx'
 import Funds from './pages/Funds.jsx'
 import FundDetail from './pages/FundDetail.jsx'
 import InvestmentOpportunities from './pages/InvestmentOpportunities.jsx'
+import OpportunityDetail from './pages/OpportunityDetail.jsx'
 import About from './pages/About.jsx'
 import Mission from './pages/Mission.jsx'
 import Team from './pages/Team.jsx'
@@ -129,6 +130,9 @@ export default function App() {
           } />
           <Route path="/investment-opportunities" element={
             <ProtectedRoute><Shell><AnimatedPage><InvestmentOpportunities /></AnimatedPage></Shell></ProtectedRoute>
+          } />
+          <Route path="/investment-opportunities/:slug" element={
+            <ProtectedRoute><Shell><AnimatedPage><OpportunityDetail /></AnimatedPage></Shell></ProtectedRoute>
           } />
           <Route path="/about" element={<Shell><AnimatedPage><About /></AnimatedPage></Shell>} />
           <Route path="/team" element={<Shell><AnimatedPage><Team /></AnimatedPage></Shell>} />
