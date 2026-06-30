@@ -123,7 +123,7 @@ export default function App() {
 
           {/* All other content is gated — guests are bounced to /login */}
           <Route path="/funds" element={
-            <ProtectedRoute><Shell><AnimatedPage><Funds /></AnimatedPage></Shell></ProtectedRoute>
+            <ProtectedRoute><Shell><AnimatedPage><FundOverview /></AnimatedPage></Shell></ProtectedRoute>
           } />
           <Route path="/funds/:slug" element={
             <ProtectedRoute><Shell><AnimatedPage><FundDetail /></AnimatedPage></Shell></ProtectedRoute>
