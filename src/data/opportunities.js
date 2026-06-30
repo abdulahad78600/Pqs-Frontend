@@ -46,7 +46,8 @@ export const opportunities = [
       "Highly disciplined portfolio construction with institutional governance, independent oversight, and rigorous due diligence designed to protect investor capital.",
       "Designed exclusively for qualified and accredited investors seeking stable, asset-backed returns through a regulated Cayman Islands investment vehicle managed by a regulated Bahamas investment manager.",
     ],
-    detailsFile: "/folders/Canadian Real Estate Fund SP.pdf",
+    detailsFile:
+      "/folders/ASSET BACKED (Canadian Real Estate Development) Fund - synopsis.pdf",
 
     details: {
       shareClasses: [
@@ -61,7 +62,7 @@ export const opportunities = [
         "Institutional-Grade Asset-Backed Real Estate Strategy — Secured by Prime Toronto Development Assets",
       thesis: [
         "The Canadian Real Estate Security Fund has been designed to provide qualified investors with a rare combination of capital preservation, hard asset security, inflation protection, and long-term capital appreciation through direct exposure to one of North America's most desirable and supply-constrained real estate markets.",
-        "Unlike traditional real estate funds that rely heavily on future development execution or speculative business plans, this investment is fundamentally supported by a strategically located Toronto development asset valued at approximately CAD $450M+ when fully realized, before accounting for any future appreciation associated with zoning enhancements, development approvals, density increases, infrastructure improvements, or construction activities.",
+        "Unlike traditional real estate funds that rely heavily on future development execution or speculative business plans, this investment is fundamentally supported by a strategically located Toronto development asset valued at approximately USD $300M+ (CAD $450M+) when fully realized, before accounting for any future appreciation associated with zoning enhancements, development approvals, density increases, infrastructure improvements, or construction activities.",
       ],
       thesisCombines: [
         "Existing hard asset value",
@@ -205,8 +206,7 @@ export const opportunities = [
               ],
             },
             {
-              title:
-                "B. Prime Toronto Development Asset — The Symington Property",
+              title: "B. Prime Toronto, ON, Canada Development Asset",
               items: [
                 "Prime location",
                 "Transit accessibility",
@@ -343,9 +343,9 @@ export const opportunities = [
           heading:
             "Footnote for Valuation — Value Creation & Appreciation Potential",
           body: [
-            "The current valuation of the underlying Symington asset is based primarily on its existing land value and current development profile. Importantly, this valuation does not fully reflect the substantial value that may be realized through future planning approvals, density increases, rezoning initiatives, infrastructure enhancements, entitlement optimization, and ultimate development execution.",
-            "Based on preliminary development concepts and projected intensification potential, management believes the property has the potential to achieve a fully realized gross development value in excess of CAD/USD $450 million, subject to market conditions, regulatory approvals, financing availability, and successful execution of the development strategy.",
-            "Unlike traditional development investments that require investors to assume substantial early-stage construction risk, the Fund's strategy allows investors to participate in the appreciation of a tangible underlying asset while benefiting from the potential transformation of a current $100 million asset into a fully realized development with an estimated value exceeding $450 million upon completion.",
+            "The current valuation of the underlying Toronto development asset is based primarily on its existing land value and current development profile. Importantly, this valuation does not fully reflect the substantial value that may be realized through future planning approvals, density increases, rezoning initiatives, infrastructure enhancements, entitlement optimization, and ultimate development execution.",
+            "Based on preliminary development concepts and projected intensification potential, management believes the property has the potential to achieve a fully realized gross development value in excess of USD $300 million (CAD $450 million), subject to market conditions, regulatory approvals, financing availability, and successful execution of the development strategy.",
+            "Unlike traditional development investments that require investors to assume substantial early-stage construction risk, the Fund's strategy allows investors to participate in the appreciation of a tangible underlying asset while benefiting from the potential transformation of a current $100 million asset into a fully realized development with an estimated value exceeding USD $300 million (CAD $450 million) upon completion.",
           ],
           groups: [
             {
@@ -355,7 +355,7 @@ export const opportunities = [
                 "Long-term land appreciation",
                 "Increased density and entitlement value",
                 "Enhanced project economics through redevelopment",
-                "Potential realization of a fully developed asset value exceeding $450 million",
+                "Potential realization of a fully developed asset value exceeding USD $300 million (CAD $450 million)",
                 "Institutional-grade exit opportunities through sale, recapitalization, refinancing, joint ventures, or strategic acquisitions",
               ],
             },
@@ -363,8 +363,8 @@ export const opportunities = [
               title: "Enhanced Investment Thesis",
               items: [
                 "Current Asset Value: Approximately $100 million",
-                "Potential Fully Realized Development Value: $450 million+",
-                "Potential Value Creation: $350 million+ of incremental value creation",
+                "Potential Fully Realized Development Value: USD $300 million+ (CAD $450 million+)",
+                "Potential Value Creation: USD $200 million+ (CAD $350 million+) of incremental value creation",
               ],
             },
           ],
@@ -374,7 +374,7 @@ export const opportunities = [
         "A current hard asset valued at approximately $100 million",
         "Located in one of the world's safest real estate jurisdictions",
         "Backed by strong demographic and housing demand fundamentals",
-        "Supported by a development pathway that may increase the asset's value to $450 million+",
+        "Supported by a development pathway that may increase the asset's value to CAD $450 million+",
         "Providing a potential 4.5x increase in underlying asset value over the development lifecycle",
       ],
       conclusionClosing:

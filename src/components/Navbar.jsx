@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, ChevronDown, LayoutDashboard, LogOut, User, Sun, Moon, LogIn, UserPlus, BookOpen, Info, Target, Users, Crown, Layers, Presentation, ExternalLink } from 'lucide-react'
+import { Menu, X, ChevronDown, LayoutDashboard, LogOut, User, Sun, Moon, LogIn, UserPlus, BookOpen, Info, Target, Users, Crown, Layers, Presentation, ExternalLink, Download } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Logo from './Logo.jsx'
 import { funds } from '../data/funds.js'
@@ -182,7 +182,7 @@ export default function Navbar() {
                             <Link to="/funds" className="text-xs text-gold-300 hover:text-gold-200">View all →</Link>
                           </div>
                           <div className="space-y-1">
-                            <Link to="/fund-overview"
+                            <Link to="/funds"
                               className="group flex items-start gap-3 p-3 rounded-xl hover:bg-gold-500/5 transition-colors"
                             >
                               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-400/20 to-gold-700/20 border border-gold-500/20 flex-shrink-0 grid place-items-center text-gold-300">
@@ -368,7 +368,7 @@ export default function Navbar() {
                     >
                       {l.label}
                     </NavLink>,
-                    <NavLink key="/fund-overview" to="/fund-overview"
+                    <NavLink key="/funds" to="/funds"
                       className={({ isActive }) =>
                         `block py-3 pl-3 text-sm border-b border-sand-50/5 ${isActive ? 'text-gold-300' : 'text-sand-50/75'}`
                       }

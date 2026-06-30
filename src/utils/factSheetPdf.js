@@ -284,41 +284,61 @@ export function generateFundFactSheet(fund) {
 
   y += 38
 
-  // ── Strategy Description + General Information (two columns) ──
-  sectionTitle(doc, 'Strategy Description', 14, y, leftW)
-  sectionTitle(doc, 'General Information', rightX, y, rightW)
+  // ── Strategy Description (full width) ──
+  const contentW = pageW - 28
+  sectionTitle(doc, 'Strategy Description', 14, y, contentW)
   y += 7
   text(doc, INK); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5)
-  const desc = fund.fundDetailsIntro || fund.tagline || ''
-  doc.text(doc.splitTextToSize(desc, leftW), 14, y, { lineHeightFactor: 1.5 })
+  const desc = fund.fundDetailsIntro || (Array.isArray(fund.tagline) ? fund.tagline[0] : fund.tagline) || ''
+  const descLines = doc.splitTextToSize(desc, contentW)
+  doc.text(descLines, 14, y, { lineHeightFactor: 1.5 })
+  y += descLines.length * 5.0 + 8
 
-  // General info rows (right)
+  // ── General Information — 2-column grid (label | value) using autoTable ──
+  sectionTitle(doc, 'General Information', 14, y, contentW)
   const gi = [
-    ['Company', 'PQS Capital Partners Ltd.'],
-    ['Min. Investment', fund.minimum || '1,000,000 USD'],
-    ['Liquidity', fs.redemptionFreq || 'Monthly'],
-    ['Base Currency', 'USD'],
-    ['Highwater Mark', 'Yes'],
-    ['Program AUM', fs.aum || '101,000,000 USD'],
-    ['Administrator', fs.administrator || 'NAV Fund Services Ltd.'],
-    ['Custodian', fs.custodian || 'Tier-1 Custodian'],
-    ['Auditor', fs.auditor || 'Independent Auditor'],
-    ['Regulator & License No.', fs.regulator || 'FCA / CIMA'],
-    ['Management Fee', fs.managementFee || '2.00%'],
-    ['Performance Fee', fs.performanceFee || '20.00%'],
-    ['Subscriptions', fs.subscriptionFreq || 'Monthly'],
+    ['Company',              'PQS Capital Partners Ltd.'],
+    ['Min. Investment',      fund.minimum || '1,000,000 USD'],
+    ['Liquidity',            fs.redemptionFreq || 'Monthly'],
+    ['Base Currency',        'USD'],
+    ['Highwater Mark',       'Yes'],
+    ['Program AUM',          fs.aum || '101,000,000 USD'],
+    ['Administrator',        fs.administrator || 'Independent Administrator'],
+    ['Custodian',            fs.custodian || 'Tier-1 Custodian'],
+    ['Auditor',              fs.auditor || 'Independent Auditor'],
+    ['Regulator & Lic. No.', fs.regulator || 'FCA / CIMA'],
+    ['Management Fee',       fs.managementFee || '2.00%'],
+    ['Performance Fee',      fs.performanceFee || '20.00%'],
+    ['Subscriptions',        fs.subscriptionFreq || 'Monthly'],
   ]
-  let giy = y - 1
-  doc.setFontSize(8)
-  gi.forEach((row) => {
-    text(doc, MUTED); doc.setFont('helvetica', 'normal'); doc.text(row[0], rightX, giy)
-    text(doc, INK); doc.text(String(row[1]), rightX + 38, giy, { maxWidth: rightW - 38 })
-    giy += 4.6
-  })
+  // Split into two side-by-side tables of ~7 rows each
+  const half = Math.ceil(gi.length / 2)
+  const leftGi  = gi.slice(0, half)
+  const rightGi = gi.slice(half)
+  const giColW  = (contentW - 8) / 2
+  const giRightX = 14 + giColW + 8
 
-  // advance below the taller of the two columns
-  const descH = doc.splitTextToSize(desc, leftW).length * 4.4
-  y = Math.max(y + descH, giy) + 8
+  const giTable = (rows, startX) => autoTable(doc, {
+    startY: y + 4,
+    body: rows,
+    theme: 'plain',
+    margin: { left: startX, right: pageW - startX - giColW },
+    tableWidth: giColW,
+    styles: {
+      font: 'helvetica', fontSize: 8, cellPadding: { top: 2, bottom: 2, left: 2, right: 2 },
+      overflow: 'linebreak', lineColor: hexToRgb(HAIR), lineWidth: 0.1,
+    },
+    columnStyles: {
+      0: { textColor: hexToRgb(MUTED), fontStyle: 'normal', cellWidth: 38 },
+      1: { textColor: hexToRgb(INK),   fontStyle: 'bold',   cellWidth: giColW - 38 },
+    },
+    didParseCell: (d) => { if (d.row.index % 2 === 0) d.cell.styles.fillColor = hexToRgb(CARD) },
+  })
+  giTable(leftGi, 14)
+  const leftTableEndY = doc.lastAutoTable.finalY
+  giTable(rightGi, giRightX)
+  const rightTableEndY = doc.lastAutoTable.finalY
+  y = Math.max(leftTableEndY, rightTableEndY) + 8
 
   // ── Performance (VAMI) chart ──
   sectionTitle(doc, 'Performance (VAMI)', 14, y, pageW - 28)
@@ -414,6 +434,8 @@ export function generateFundFactSheet(fund) {
 
   footer(doc, pageW, pageH, 2, 2)
 
-  const safeName = (fund.slug || fund.name).replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()
-  doc.save(`pqs-${safeName}-fact-sheet.pdf`)
+  const downloadName = fund.detailsFile
+    ? fund.detailsFile.replace(/^.*\//, '').replace(/\.pdf$/i, '')
+    : `pqs-${(fund.slug || fund.name).replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()}-fact-sheet`
+  doc.save(`${downloadName}.pdf`)
 }
