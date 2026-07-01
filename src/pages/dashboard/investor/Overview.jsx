@@ -284,7 +284,7 @@ export default function InvestorOverview() {
           {funds.length === 0 ? (
             <EmptyHint
               message={loading ? 'Loading enrolments…' : 'You have no fund enrolments yet.'}
-              cta={!loading ? { to: '/dashboard/funds', label: 'Browse funds' } : null}
+              cta={!loading ? { to: '/investment-opportunities', label: 'Browse funds' } : null}
             />
           ) : (
             <div className="overflow-x-auto -mx-1">
