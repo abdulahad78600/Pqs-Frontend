@@ -5,7 +5,6 @@ import Footer from './components/Footer.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import Home from './pages/Home.jsx'
 import GetStarted from './pages/GetStarted.jsx'
-import Funds from './pages/Funds.jsx'
 import FundDetail from './pages/FundDetail.jsx'
 import InvestmentOpportunities from './pages/InvestmentOpportunities.jsx'
 import OpportunityDetail from './pages/OpportunityDetail.jsx'
@@ -181,7 +180,7 @@ export default function App() {
             <Route path="insights"   element={<InvestorInsights />} />
 
             {/* Consolidated three-fund browse view */}
-            <Route path="funds"            element={<Funds />} />
+            <Route path="funds"            element={<FundOverview />} />
             <Route path="funds/:slug"      element={<FundDetail />} />
 
             {/* Account / API-backed pages */}

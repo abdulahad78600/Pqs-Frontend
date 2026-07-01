@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MapPin, CheckCircle2, Send } from 'lucide-react'
+import { Mail, Phone, MapPin, CheckCircle2, Send, Check, ChevronDown } from 'lucide-react'
 import SectionHeader from '../components/SectionHeader.jsx'
 import AmbientBackdrop from '../components/AmbientBackdrop.jsx'
-import { funds } from '../data/funds.js'
+import { opportunities } from '../data/opportunities.js'
 
 const offices = [
   { city: 'London, United Kingdom', line: 'PQS Fund — Head Office · 21 Arlington St, London SW1A 1RD, UK', tz: 'GMT · UTC+0' },
@@ -17,7 +17,7 @@ const offices = [
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false)
   const [form, setForm] = useState({
-    name: '', email: '', firm: '', interest: funds[0].slug, ticket: '$500K – $1M', message: ''
+    name: '', email: '', firm: '', interest: opportunities[0].slug, ticket: '$500K – $1M', message: ''
   })
 
   const handle = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }))
@@ -63,17 +63,18 @@ export default function Contact() {
               </Field>
               <div className="grid sm:grid-cols-2 gap-5">
                 <Field label="Fund of interest">
-                  <select value={form.interest} onChange={handle('interest')} className="input">
-                    {funds.map((f) => <option key={f.slug} value={f.slug} className="bg-ink-900">{f.name}</option>)}
-                    <option value="multi" className="bg-ink-900">Multi-fund / Platform-wide</option>
-                  </select>
+                  <Select
+                    value={form.interest}
+                    onChange={(v) => setForm((s) => ({ ...s, interest: v }))}
+                    options={opportunities.map((o) => ({ value: o.slug, label: o.name }))}
+                  />
                 </Field>
                 <Field label="Indicative ticket">
-                  <select value={form.ticket} onChange={handle('ticket')} className="input">
-                    {['$500K – $1M','$1M – $5M','$5M – $10M','$10M+'].map((t) => (
-                      <option key={t} className="bg-ink-900">{t}</option>
-                    ))}
-                  </select>
+                  <Select
+                    value={form.ticket}
+                    onChange={(v) => setForm((s) => ({ ...s, ticket: v }))}
+                    options={['$500K – $1M','$1M – $5M','$5M – $10M','$10M+'].map((t) => ({ value: t, label: t }))}
+                  />
                 </Field>
               </div>
               <Field label="Message">
@@ -156,5 +157,53 @@ function Field({ label, required, children }) {
       </span>
       {children}
     </label>
+  )
+}
+
+function Select({ value, onChange, options }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const current = options.find((o) => o.value === value)
+
+  useEffect(() => {
+    if (!open) return
+    const onClickOutside = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onClickOutside)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="input flex items-center justify-between gap-2 text-left"
+      >
+        <span className="truncate">{current?.label}</span>
+        <ChevronDown size={14} className={`flex-shrink-0 text-sand-50/50 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 rounded-xl border border-sand-50/10 bg-[#0f1218] shadow-2xl shadow-black/40 py-1.5 max-h-64 overflow-auto">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => { onChange(o.value); setOpen(false) }}
+              className={`w-full flex items-center gap-2 px-3.5 py-2.5 text-sm text-left transition-colors ${
+                o.value === value ? 'bg-blue-600 text-white' : 'text-sand-50/85 hover:bg-sand-50/5'
+              }`}
+            >
+              <Check size={14} className={`flex-shrink-0 ${o.value === value ? 'opacity-100' : 'opacity-0'}`} />
+              <span className="truncate">{o.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

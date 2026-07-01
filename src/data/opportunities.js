@@ -22,8 +22,7 @@ export const opportunities = [
     category: "Segregated Portfolio",
     tagline:
       "Asset-Backed Fund Institutional - grade investment strategy providing exposure to a diversified portfolio of high-quality Canadian and European hard assets, structured finance, and real assets — all held within the Fund to prioritize capital preservation and long-term value creation.",
-    image:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=80",
+    image: "/images/symington-toronto-development.png",
     accentFrom: "from-indigo-500/20",
     accentTo: "to-gold-500/10",
 
