@@ -19,39 +19,39 @@ const videos = [
     src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     featured: true
   },
-  {
-    id: 'v-fund-1-growth',
-    title: 'Fund 1 — Orbit Macro Growth Fund Briefing',
-    description: 'A walkthrough of the high-conviction growth strategy: position sizing, risk budget, and how upside is pursued without impairing the fund.',
-    category: 'Strategy',
-    duration: '6:48',
-    views: '1.8K',
-    date: 'Apr 2026',
-    thumb: 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?auto=format&fit=crop&w=1400&q=80',
-    src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
-  },
-  {
-    id: 'v-fund-2-income',
-    title: 'Fund 2 — Aurora Quant Income Fund Briefing',
-    description: 'Inside the systematic income strategy — the rules-based process, diversification framework, and how distributions are targeted.',
-    category: 'Strategy',
-    duration: '5:21',
-    views: '3.1K',
-    date: 'Mar 2026',
-    thumb: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
-    src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
-  },
-  {
-    id: 'v-fund-3-reserve',
-    title: 'Fund 3 — Axis Digital Reserve Fund Briefing',
-    description: 'How the conservative reserve fund preserves capital, maintains liquidity, and delivers modest, predictable returns.',
-    category: 'Strategy',
-    duration: '5:03',
-    views: '1.1K',
-    date: 'Jan 2026',
-    thumb: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1400&q=80',
-    src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
-  },
+  // {
+  //   id: 'v-fund-1-growth',
+  //   title: 'Fund 1 — Orbit Macro Growth Fund Briefing',
+  //   description: 'A walkthrough of the high-conviction growth strategy: position sizing, risk budget, and how upside is pursued without impairing the fund.',
+  //   category: 'Strategy',
+  //   duration: '6:48',
+  //   views: '1.8K',
+  //   date: 'Apr 2026',
+  //   thumb: 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?auto=format&fit=crop&w=1400&q=80',
+  //   src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+  // },
+  // {
+  //   id: 'v-fund-2-income',
+  //   title: 'Fund 2 — Aurora Quant Income Fund Briefing',
+  //   description: 'Inside the systematic income strategy — the rules-based process, diversification framework, and how distributions are targeted.',
+  //   category: 'Strategy',
+  //   duration: '5:21',
+  //   views: '3.1K',
+  //   date: 'Mar 2026',
+  //   thumb: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1400&q=80',
+  //   src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+  // },
+  // {
+  //   id: 'v-fund-3-reserve',
+  //   title: 'Fund 3 — Axis Digital Reserve Fund Briefing',
+  //   description: 'How the conservative reserve fund preserves capital, maintains liquidity, and delivers modest, predictable returns.',
+  //   category: 'Strategy',
+  //   duration: '5:03',
+  //   views: '1.1K',
+  //   date: 'Jan 2026',
+  //   thumb: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1400&q=80',
+  //   src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4'
+  // },
   {
     id: 'v-investor-thesis',
     title: 'Capital Preservation First, Upside Second — The PQS Thesis',
