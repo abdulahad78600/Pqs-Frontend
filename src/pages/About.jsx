@@ -131,6 +131,59 @@ function MemberAbout() {
         </div>
       </section>
 
+      {/* Our Services */}
+      <section className="container-page pt-4 pb-20 md:pt-8 md:pb-28">
+        <div className="eyebrow mb-4">Our Services</div>
+        <h3 className="h-display text-3xl md:text-4xl leading-snug">
+          Institutional Investment Management & <span className="gold-text">Global Capital Solutions</span>.
+        </h3>
+        <div className="mt-6 max-w-4xl space-y-4 text-sand-50/70 leading-relaxed">
+          <p>
+            PQS Fund SPC is a registered Cayman Islands regulated Segregated Portfolio Company (SPC)
+            managed by PQS Capital Partners, providing Institutional Investment management,
+            asset-backed investment strategies, structured finance, and bespoke capital solutions
+            exclusively for qualified and professional investors worldwide.
+          </p>
+          <p>
+            Our investment platform is built on a disciplined approach to capital preservation,
+            prudent risk management, and long-term value creation through carefully selected
+            alternative investments. We provide exposure to diversified sectors including Canadian
+            & European real estate, private credit, infrastructure, healthcare, pharmaceuticals,
+            artificial intelligence, intellectual property, commodities, and other alternative asset
+            classes. Many of our investment strategies are supported by tangible underlying assets,
+            secured collateral, or ownership interests in operating businesses, providing investors
+            with an additional layer of security.
+          </p>
+          <p>
+            Beyond investment management, PQS delivers customized capital solutions for
+            corporations, developers, entrepreneurs, family offices, and institutional investors.
+            Our services include structured finance, private credit, asset-backed lending,
+            development and acquisition financing, asset monetization, mergers and acquisitions
+            advisory, cross-border transaction structuring, capital raising, and strategic
+            investment partnerships.
+          </p>
+          <p>
+            Through our global network of regulated banking institutions, legal advisors,
+            administrators, fiduciaries, and professional service providers, we also assist clients
+            with trust and fiduciary structures, holding companies, wealth planning, international
+            banking relationships, treasury solutions, and institutional custody arrangements where
+            appropriate.
+          </p>
+          <p>
+            Institutional governance is central to every engagement. Our platform operates under
+            comprehensive compliance frameworks, including rigorous AML/KYC procedures, enhanced due
+            diligence, independent professional oversight, external audit, legal review, and robust
+            operational controls designed to meet the expectations of sophisticated global investors.
+          </p>
+          <p>
+            At PQS, we combine institutional governance, global execution capabilities, and
+            innovative investment solutions to help qualified investors preserve capital, access
+            differentiated investment opportunities, and achieve sustainable long-term growth through
+            professionally managed, asset-backed investment strategies.
+          </p>
+        </div>
+      </section>
+
       <section className="container-page pb-20 md:pb-28 grid lg:grid-cols-12 gap-10 items-start">
         <div className="lg:col-span-7">
           <div className="eyebrow mb-4">Our Investment Platform</div>

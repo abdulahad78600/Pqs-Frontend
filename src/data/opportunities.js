@@ -18,7 +18,7 @@
 export const opportunities = [
   {
     slug: "asset-backed-sp",
-    name: "Asset-Backed Fund",
+    name: "Asset-Back Fund SP1",
     category: "Segregated Portfolio",
     tagline:
       "Asset-Backed Fund Institutional - grade investment strategy providing exposure to a diversified portfolio of high-quality Canadian and European hard assets, structured finance, and real assets — all held within the Fund to prioritize capital preservation and long-term value creation.",
@@ -56,7 +56,7 @@ export const opportunities = [
       isin: "KYG7S14W1016",
       cusip: "G7S14W 101",
       assetRating: "AA+",
-      title: "Canadian Real Estate Security Fund",
+      title: "Asset-Back Fund SP1",
       subtitle:
         "Institutional-Grade Asset-Backed Real Estate Strategy — Secured by Prime Toronto Development Assets",
       thesis: [
@@ -424,8 +424,7 @@ export const opportunities = [
     category: "Segregated Portfolio",
     tagline:
       "Assisted Living Canada Fund provides institutional investors with income-oriented exposure to essential senior housing and assisted-living real assets through a fully asset-backed investment strategy backed by prime Canadian real estate.",
-    image:
-      "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1600&q=80",
+    image: "/images/stillbrook/exterior.jpg",
     accentFrom: "from-sky-500/20",
     accentTo: "to-gold-500/10",
 
@@ -449,7 +448,7 @@ export const opportunities = [
         { name: "Class A", dividends: "3–4%", minimum: "$2.5M" },
         { name: "Class B", dividends: "4–6%", minimum: "$10M" },
       ],
-      title: "PQS Assisted Living Canada Fund",
+      title: "Assisted Living Canada Fund",
       subtitle:
         "Institutional Investment Memorandum — Executive Investment Thesis",
       thesis: [
@@ -735,7 +734,7 @@ export const opportunities = [
       isin: "Coming soon",
       cusip: "Coming soon",
       assetRating: "AA+",
-      title: "Art-Backed Strategic Opportunities Fund",
+      title: "Art-Backed Fund",
       subtitle: "Institutional Investment Memorandum & Opportunity Analysis",
       sections: [
         {
@@ -995,7 +994,7 @@ export const opportunities = [
       "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&w=1600&q=80",
     accentFrom: "from-emerald-500/20",
     accentTo: "to-gold-500/10",
-    externalUrl: "https://stately-pudding-dc7bac.netlify.app/",
+    // externalUrl: "https://stately-pudding-dc7bac.netlify.app/",
 
     riskProfile: "High",
     riskLevel: 5,
@@ -1053,12 +1052,11 @@ export const opportunities = [
   },
   {
     slug: "pharmaceutical-sp",
-    name: "AI Precision Pharmaceutical SP",
+    name: "Pharmaceutical AI Fund",
     category: "Segregated Portfolio",
     tagline:
-      "AI Precision Pharmaceutical SP - Concentrated, conviction-led exposure to the next generation of pharmaceutical innovation through patented cannabinoid active pharmaceutical ingredients (APIs), AI-enabled drug discovery, precision medicine, and regulated pharmaceutical intellectual property.",
-    image:
-      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1600&q=80",
+      "Pharmaceutical AI Fund - Concentrated, conviction-led exposure to the next generation of pharmaceutical innovation through patented cannabinoid active pharmaceutical ingredients (APIs), AI-enabled drug discovery, precision medicine, and regulated pharmaceutical intellectual property.",
+    image: "/images/pharmaceutical-facility.png",
     accentFrom: "from-emerald-500/20",
     accentTo: "to-gold-500/10",
 
@@ -1084,7 +1082,7 @@ export const opportunities = [
         { name: "Class A", dividends: "TBD", minimum: "$1M" },
         { name: "Class B", dividends: "TBD", minimum: "$5M" },
       ],
-      title: "Pharmaceutical Fund ii SP",
+      title: "Pharmaceutical AI Fund",
       subtitle:
         "The Future of Medicine Will Be Personalized. The Future of Cannabinoids Will Be Pharmaceutical. We Are Building Both.",
       quote:
