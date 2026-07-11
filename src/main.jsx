@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import App from './App.jsx'
-import SiteLock from './components/SiteLock.jsx'
 import DisclaimerGate from './components/DisclaimerGate.jsx'
 import { ThemeProvider, useTheme } from './theme/ThemeContext.jsx'
 import './index.css'
@@ -27,14 +26,13 @@ function ThemedToasts() {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
-      <SiteLock>
-        <BrowserRouter>
-          <DisclaimerGate>
-            <App />
-          </DisclaimerGate>
-          <ThemedToasts />
-        </BrowserRouter>
-      </SiteLock>
+      {/* SiteLock disabled: the app now loads directly without the access-code gate. */}
+      <BrowserRouter>
+        <DisclaimerGate>
+          <App />
+        </DisclaimerGate>
+        <ThemedToasts />
+      </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>
 )

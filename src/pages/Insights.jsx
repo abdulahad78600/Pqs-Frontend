@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Play, X, Clock, Eye, Calendar } from 'lucide-react'
 import SectionHeader from '../components/SectionHeader.jsx'
 import AmbientBackdrop from '../components/AmbientBackdrop.jsx'
+import Logo from '../components/Logo.jsx'
 
 // Generic video briefings — strategy and platform overviews only.
 // We intentionally do not identify any specific opportunity here.
@@ -229,6 +230,8 @@ function VideoCard({ video, index, onPlay }) {
 }
 
 function PlayerModal({ video, onClose }) {
+  const [videoFailed, setVideoFailed] = useState(false)
+
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -250,13 +253,21 @@ function PlayerModal({ video, onClose }) {
           <X size={18} />
         </button>
 
-        <div className="aspect-video bg-ink-950">
-          <video
-            src={video.src}
-            poster={video.thumb}
-            controls autoPlay
-            className="w-full h-full"
-          />
+        <div className="aspect-video bg-ink-950 grid place-items-center">
+          {videoFailed ? (
+            <div className="flex flex-col items-center gap-5 text-center px-6">
+              <Logo variant="mark" className="scale-[2.2]" />
+              <p className="text-sm uppercase tracking-widest text-gold-200/70">Coming soon</p>
+            </div>
+          ) : (
+            <video
+              src={video.src}
+              poster={video.thumb}
+              controls autoPlay
+              className="w-full h-full"
+              onError={() => setVideoFailed(true)}
+            />
+          )}
         </div>
 
         <div className="p-6 md:p-8">
