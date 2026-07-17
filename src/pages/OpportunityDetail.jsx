@@ -232,11 +232,13 @@ export default function OpportunityDetail() {
               </p>
             </div>
             <div className="flex flex-col justify-center gap-3 max-w-md">
-              {o.detailsFile && (
-                <a href={o.detailsFile} target="_blank" rel="noopener noreferrer" className="btn-ghost justify-center">
-                  <Download size={16}/> View source document (PDF)
-                </a>
-              )}
+              <button
+                type="button"
+                onClick={() => window.open(`/investment-opportunities/${o.slug}`, '_blank', 'noopener,noreferrer')}
+                className="btn-ghost justify-center"
+              >
+                <Download size={16}/> View source document
+              </button>
               <button type="button" onClick={() => generateFundFactSheet(o)} className="btn-ghost justify-center">
                 <Download size={16}/> Download fact sheet (PDF)
               </button>
