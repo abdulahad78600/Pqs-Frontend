@@ -4,7 +4,7 @@ import { ArrowRight, ShieldCheck, TrendingUp, Layers } from 'lucide-react'
 import SectionHeader from '../components/SectionHeader.jsx'
 import AmbientBackdrop from '../components/AmbientBackdrop.jsx'
 import RiskMeter from '../components/RiskMeter.jsx'
-import { funds } from '../data/funds.js'
+import { liveFunds } from '../data/funds.js'
 
 const riskTone = {
   Conservative: { tag: 'bg-emerald-500/25 text-emerald-100 border-emerald-400/60', icon: ShieldCheck },
@@ -13,16 +13,16 @@ const riskTone = {
 }
 
 export default function Funds() {
-  const orderedFunds = [...funds].sort((a, b) => a.riskLevel - b.riskLevel)
+  const orderedFunds = [...liveFunds].sort((a, b) => a.riskLevel - b.riskLevel)
   return (
     <div>
       <section className="relative py-20 md:py-28">
         <AmbientBackdrop />
         <div className="container-page relative">
           <SectionHeader
-            eyebrow="Active Offerings"
-            title={<>Four funds. <span className="gold-text">One platform.</span></>}
-            subtitle="Pick the fund that matches your mandate. Each fund opens to a list of underlying investment opportunities and full detail."
+            eyebrow="Active Offering"
+            title={<>One live fund. <span className="gold-text">One platform.</span></>}
+            subtitle="The website currently surfaces the single live mandate. The fact sheet button downloads the approved PDF for that live fund."
           />
         </div>
       </section>

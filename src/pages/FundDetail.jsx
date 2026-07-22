@@ -16,7 +16,7 @@ const verticalIcons = {
   'Pharmaceutical & Life Sciences': FlaskConical,
   'Regulated Alternative Sectors': Sprout
 }
-import { getFundBySlug, funds } from '../data/funds.js'
+import { getFundBySlug, liveFunds } from '../data/funds.js'
 import RiskMeter from '../components/RiskMeter.jsx'
 import SectionHeader from '../components/SectionHeader.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -28,7 +28,7 @@ export default function FundDetail() {
 
   const { user } = useAuth()
   const [expanded, setExpanded] = useState(false)
-  const others = funds.filter((f) => f.slug !== fund.slug).slice(0, 3)
+  const others = liveFunds.filter((f) => f.slug !== fund.slug).slice(0, 3)
   // Either authed users land straight on the subscribe form (slug resolved server-side
   // by the Subscribe page) or guests get bounced through /login by ProtectedRoute,
   // which already preserves the original destination via location.state.from.
