@@ -1,5 +1,5 @@
 // Single source of truth for every fund offering.
-// Four funds, segmented by risk profile per client brief:
+// One live fund plus three roadmap / inactive funds, segmented by risk profile:
 //   Fund 1 — Orbit Macro Growth Fund          — High risk
 //   Fund 2 — Aurora Quant Income Fund          — Moderate risk
 //   Fund 3 — PQS Axis Digital Reserve Fund SP1 — Conservative risk (asset-backed RE, Toronto)
@@ -14,6 +14,7 @@ export const funds = [
     fundNumber: 'Fund 1',
     category: 'Orbit Macro Growth Fund',
     name: 'Orbit Macro Growth Fund',
+    isLive: false,
     tagline:
       'Concentrated, conviction-led exposure to global macro themes — engineered for investors who want meaningful upside and accept commensurate volatility.',
     location: 'Global',
@@ -169,6 +170,7 @@ export const funds = [
     fundNumber: 'Fund 2',
     category: 'Aurora Quant Income Fund',
     name: 'Aurora Quant Income Fund',
+    isLive: false,
     tagline:
       'A systematic, income-oriented strategy targeting steady distributions and balanced growth across diversified positions.',
     location: 'Global',
@@ -321,6 +323,7 @@ export const funds = [
     fundNumber: 'Fund 3',
     category: 'PQS Axis Digital Reserve Fund SP1',
     name: 'PQS Axis Digital Reserve Fund SP1',
+    isLive: true,
     subName: 'Segregated Portfolio One (SP1)',
     cusip: 'G7S14W 101',
     isin: 'KYG7S14W1016',
@@ -443,6 +446,7 @@ export const funds = [
       auditor: 'Baker Tilly',
       custodian: 'International / Canadian banking institution(s)',
       governingLaw: 'Cayman Islands (subject to Canadian RE & securities regulation)',
+      pdfUrl: '/folders/PQS_Asset_Backed_Fund_SP1_Fact_Sheet.pdf',
       allocation: [
         { label: 'Acquisition & Closing',     weight: 50 },
         { label: 'Development & Intensification', weight: 25 },
@@ -470,6 +474,7 @@ export const funds = [
     fundNumber: 'Fund 4',
     category: 'Orbit Macro Growth Fund SP1',
     name: 'Orbit Macro Growth Fund SP1',
+    isLive: false,
     subName: 'Segregated Portfolio One (SP1)',
     comingSoon: true,
     cusip: 'Coming soon',
@@ -620,3 +625,4 @@ export const funds = [
 ]
 
 export const getFundBySlug = (slug) => funds.find((f) => f.slug === slug)
+export const liveFunds = funds.filter((f) => f.isLive)

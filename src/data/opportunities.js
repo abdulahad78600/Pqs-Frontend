@@ -45,8 +45,9 @@ export const opportunities = [
       "Highly disciplined portfolio construction with institutional governance, independent oversight, and rigorous due diligence designed to protect investor capital.",
       "Designed exclusively for qualified and accredited investors seeking stable, asset-backed returns through a regulated Cayman Islands investment vehicle managed by a regulated Bahamas investment manager.",
     ],
-    detailsFile:
-      "/folders/ASSET BACKED (Canadian Real Estate Development) Fund - synopsis.pdf",
+    factSheetPdf: "/folders/PQS_Asset_Backed_Fund_SP1_Fact_Sheet.pdf",
+    // Previous source document kept for reference in case we need to restore it later.
+    // detailsFile: "/folders/ASSET BACKED (Canadian Real Estate Development) Fund - synopsis.pdf",
 
     details: {
       shareClasses: [

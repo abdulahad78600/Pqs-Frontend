@@ -246,10 +246,32 @@ function perfStatBlock(doc, perf, x, y, w) {
   return y + 2 * rowH
 }
 
-export function generateFundFactSheet(fund) {
+export function generateFundFactSheet(fund, options = {}) {
   if (!fund?.factSheet) {
     throw new Error(`Fund "${fund?.name || 'unknown'}" is missing factSheet data.`)
   }
+  const { mode = 'download' } = options
+
+  // If the fund ships with a curated static PDF, use that instead of the
+  // generated version so the website always serves the latest approved sheet.
+  if (fund.factSheetPdf || fund.factSheet?.pdfUrl) {
+    const pdfUrl = fund.factSheetPdf || fund.factSheet.pdfUrl
+    const fileName = pdfUrl.split('/').pop() || `${fund.slug || 'fact-sheet'}.pdf`
+    if (typeof window !== 'undefined') {
+      if (mode === 'preview') {
+        window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+      } else {
+        const link = document.createElement('a')
+        link.href = pdfUrl
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+      }
+    }
+    return
+  }
+
   const stats = deriveStats(fund)
   fundLegendName = fund.name
 
@@ -437,5 +459,23 @@ export function generateFundFactSheet(fund) {
   const downloadName = fund.detailsFile
     ? fund.detailsFile.replace(/^.*\//, '').replace(/\.pdf$/i, '')
     : `pqs-${(fund.slug || fund.name).replace(/[^a-z0-9-_]+/gi, '-').toLowerCase()}-fact-sheet`
+  if (mode === 'preview') {
+    const blob = doc.output('blob')
+    const url = URL.createObjectURL(blob)
+    const opened = window.open(url, '_blank', 'noopener,noreferrer')
+
+    if (!opened) {
+      const fallbackLink = document.createElement('a')
+      fallbackLink.href = url
+      fallbackLink.target = '_blank'
+      fallbackLink.rel = 'noopener noreferrer'
+      fallbackLink.click()
+    }
+
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    return url
+  }
+
   doc.save(`${downloadName}.pdf`)
+  return `${downloadName}.pdf`
 }
