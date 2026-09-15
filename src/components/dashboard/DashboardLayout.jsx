@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, Settings as SettingsIcon, User, Menu, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import { dashboardNavSections } from './nav.js'
 import { DashboardBadgesProvider, useDashboardBadges } from './DashboardBadgesContext.jsx'
+import { fetchAllFunds } from '../../utils/api.js'
+import { funds as fallbackFunds } from '../../data/funds.js'
 
 export default function DashboardLayout() {
   return (
@@ -89,6 +91,29 @@ function DashboardLayoutInner() {
 
 
 function Sidebar({ user, badges, onNavigate, onLogout }) {
+  const [funds, setFunds] = useState([])
+
+  useEffect(() => {
+    let active = true
+    fetchAllFunds()
+      .then((response) => {
+        if (!active) return
+        const list = Array.isArray(response) ? response : response?.funds || response?.data || []
+        if (Array.isArray(list) && list.length > 0) {
+          setFunds(list.map((fund) => ({
+            id: fund._id || fund.id,
+            name: fund.fundName || fund.name || 'PQS Fund',
+          })).filter((fund) => fund.id))
+        }
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  const listedFunds = funds.length > 0
+    ? funds
+    : fallbackFunds.map((fund) => ({ id: fund.slug, name: fund.name }))
+
   return (
     <div className="card-glass p-5">
       <UserBlock user={user} />
@@ -101,6 +126,7 @@ function Sidebar({ user, badges, onNavigate, onLogout }) {
             items={section.items}
             badges={badges}
             onNavigate={onNavigate}
+            funds={listedFunds}
           />
         ))}
       </nav>
@@ -164,7 +190,7 @@ function Avatar({ initials }) {
 }
 
 // =========================== Nav section ===========================
-function NavSection({ title, items, badges, onNavigate }) {
+function NavSection({ title, items, badges, onNavigate, funds = [] }) {
   return (
     <div>
       <div className="text-[10px] uppercase tracking-[0.18em] text-sand-50/40 px-3 mb-2">
@@ -172,7 +198,25 @@ function NavSection({ title, items, badges, onNavigate }) {
       </div>
       <div className="space-y-0.5">
         {items.map((item) => (
-          <NavRow key={item.to} item={item} badge={item.badge ? badges[item.badge] : undefined} onClick={onNavigate} />
+          <div key={item.to}>
+            <NavRow item={item} badge={item.badge ? badges[item.badge] : undefined} onClick={onNavigate} />
+            {item.label === 'Funds' && (
+              <div className="ml-7 mt-1 pl-4 border-l border-gold-500/20 space-y-1">
+                <div className="text-[9px] uppercase tracking-[0.16em] text-sand-50/40 pt-1">PQS funds</div>
+                {funds.map((fund) => (
+                  <NavLink
+                    key={fund.id}
+                    to={`/dashboard/subscribe/${fund.id}`}
+                    onClick={onNavigate}
+                    className="block truncate py-1 text-xs text-sand-50/55 hover:text-gold-200 transition-colors"
+                    title={fund.name}
+                  >
+                    {fund.name}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>

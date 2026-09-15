@@ -64,7 +64,9 @@ export default function SubscribePage() {
     fetchAllFunds()
       .then((data) => {
         if (!alive) return
-        const list = Array.isArray(data) ? data : data?.funds || []
+        // The API has returned both `{ funds: [] }` and `{ data: [] }` over
+        // time. Normalise either response so every available fund is shown.
+        const list = Array.isArray(data) ? data : data?.funds || data?.data || []
         setFunds(list)
         const resolved = resolveFundIdFromParam(paramFundId, list)
         if (resolved) setForm((s) => ({ ...s, fundId: resolved }))

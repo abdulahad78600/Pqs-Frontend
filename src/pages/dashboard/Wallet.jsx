@@ -17,6 +17,54 @@ import {
 } from '../../utils/api.js'
 import { fmtMoney, fmtNumber } from '../../utils/format.js'
 
+// Treat provider labels such as "USDT-TRC20" as the USDT asset when matching
+// a deposit address to an account holding.
+const assetKey = (asset) => String(asset || '').toUpperCase().split(/[-_\s]/)[0]
+const walletKey = (wallet) => [
+  assetKey(wallet.asset),
+  String(wallet.network || wallet.chain || wallet.chain_id || '').toUpperCase(),
+  String(wallet.token_id || '').toUpperCase(),
+].join('|')
+const walletIdentity = (wallet) => [
+  String(wallet.wallet || wallet.address || '').trim().toLowerCase(),
+  assetKey(wallet.asset),
+  String(wallet.network || wallet.chain || wallet.chain_id || '').toUpperCase(),
+].join('|')
+const uniqueWallets = (wallets) => [...new Map(wallets.map((wallet) => [walletIdentity(wallet), wallet])).values()]
+const readCreatedWalletKeys = (userId) => {
+  if (!userId) return []
+  try {
+    const saved = JSON.parse(localStorage.getItem(`pqs-created-wallets-${userId}`) || '[]')
+    return Array.isArray(saved) ? saved : []
+  } catch {
+    return []
+  }
+}
+
+// Wallet endpoints have used both `{ wallets: [] }` and `{ data: [] }`.
+// Normalising them here prevents a successful create from being followed by a
+// misleading empty wallet screen.
+const normalizeWallet = (wallet) => {
+  const address = wallet?.wallet || wallet?.address || wallet?.walletAddress || wallet?.depositAddress || ''
+  return {
+    ...wallet,
+    _id: wallet?._id || wallet?.id || `${wallet?.asset || 'asset'}-${wallet?.network || wallet?.chain || ''}-${address}`,
+    wallet: address,
+  }
+}
+const extractWallets = (response) => {
+  const candidates = [
+    response,
+    response?.wallets,
+    response?.data,
+    response?.data?.wallets,
+    response?.data?.data,
+    response?.result?.wallets,
+  ]
+  const list = candidates.find(Array.isArray) || []
+  return list.map(normalizeWallet).filter((wallet) => wallet.wallet)
+}
+
 export default function WalletPage() {
   const { user } = useAuth()
   const userId = user?._id
@@ -33,17 +81,19 @@ export default function WalletPage() {
   const [selectedCoins, setSelectedCoins] = useState([])
   const [error, setError] = useState('')
   const [copiedKey, setCopiedKey] = useState(null)
+  const [createdWalletKeys, setCreatedWalletKeys] = useState(() => readCreatedWalletKeys(user?._id))
+  const [walletKeysUserId, setWalletKeysUserId] = useState(user?._id)
 
   // Deposit modal: pick one of the user's existing wallets, show its address + QR.
   const [showDeposit, setShowDeposit] = useState(false)
   const [depositWalletId, setDepositWalletId] = useState('')
   const [depositAmount, setDepositAmount] = useState('')
 
-  const loadData = () => {
-    if (!userId) return
+  const loadData = ({ preserveWallets = false } = {}) => {
+    if (!userId) return Promise.resolve()
     setLoading(true)
     setError('')
-    Promise.allSettled([
+    return Promise.allSettled([
       fetchBaseCurrency(userId),
       fetchUserBalance(userId),
       fetchWallets(userId),
@@ -55,10 +105,12 @@ export default function WalletPage() {
       if (bal.status === 'fulfilled' && bal.value?.success) {
         setBalances(bal.value.balances)
       }
-      if (wal.status === 'fulfilled' && wal.value?.success) {
-        setWallets(wal.value.wallets || [])
-      } else if (wal.status === 'fulfilled') {
-        setWallets([])
+      if (wal.status === 'fulfilled') {
+        const loadedWallets = extractWallets(wal.value)
+        setWallets((current) => {
+          if (!preserveWallets) return uniqueWallets(loadedWallets)
+          return uniqueWallets([...current, ...loadedWallets])
+        })
       }
       if (results.every((r) => r.status === 'rejected')) {
         setError("We couldn't load your wallet data.")
@@ -68,6 +120,20 @@ export default function WalletPage() {
   }
 
   useEffect(() => { loadData() }, [userId])
+
+  // A new deposit address has a zero balance by design. Remember the assets
+  // created by this account so that address is visible immediately, before the
+  // first on-chain deposit is reflected in balances.
+  useEffect(() => {
+    if (walletKeysUserId === userId) return
+    setWalletKeysUserId(userId)
+    setCreatedWalletKeys(readCreatedWalletKeys(userId))
+  }, [userId, walletKeysUserId])
+
+  useEffect(() => {
+    if (!userId || walletKeysUserId !== userId) return
+    localStorage.setItem(`pqs-created-wallets-${userId}`, JSON.stringify(createdWalletKeys))
+  }, [createdWalletKeys, userId, walletKeysUserId])
 
   const loadCoins = async () => {
     setCoinsLoading(true)
@@ -116,10 +182,26 @@ export default function WalletPage() {
       }))
       const data = await createWallet(payload)
       if (data?.success) {
+        // Some providers return every supported wallet in this response. Keep
+        // only the asset/network the investor selected, not that global list.
+        const createdWallets = extractWallets(data).filter((wallet) =>
+          selectedCoins.some((coin) => {
+            const sameAsset = assetKey(coin.asset) === assetKey(wallet.asset)
+            const coinNetwork = String(coin.network || coin.chain || coin.chain_id || '').toUpperCase()
+            const walletNetwork = String(wallet.network || wallet.chain || wallet.chain_id || '').toUpperCase()
+            return sameAsset && (!coinNetwork || !walletNetwork || coinNetwork === walletNetwork)
+          })
+        )
+        if (createdWallets.length > 0) {
+          setWallets((current) => {
+            return uniqueWallets([...current, ...createdWallets])
+          })
+        }
+        setCreatedWalletKeys((current) => [...new Set([...current, ...selectedCoins.map(walletKey)])])
         toast.success(data.message || 'Wallet created successfully.')
         setShowCreate(false)
         setSelectedCoins([])
-        loadData()
+        await loadData({ preserveWallets: createdWallets.length > 0 })
       } else {
         toast.error(data?.message || 'Failed to create wallet.')
       }
@@ -137,15 +219,6 @@ export default function WalletPage() {
     setTimeout(() => setCopiedKey(null), 1500)
   }
 
-  // Open the deposit modal. If the user has wallets, preselect the first one;
-  // otherwise the modal prompts them to create a wallet first.
-  const openDeposit = () => {
-    setDepositWalletId((prev) => prev || wallets[0]?._id || '')
-    setDepositAmount('')
-    setShowDeposit(true)
-  }
-  const depositWallet = wallets.find((w) => w._id === depositWalletId) || null
-
   const fiatTotal = useMemo(
     () => (balances?.fiat || []).reduce((s, f) => s + (f.availableBalance || 0), 0),
     [balances]
@@ -158,6 +231,34 @@ export default function WalletPage() {
     })
     return Object.entries(map).map(([asset, total]) => ({ asset, total }))
   }, [balances])
+
+  // Some provider responses include their shared/default addresses alongside
+  // the user's wallets. Never show those as a user's deposit address. Prefer
+  // an explicit owner field; for older responses without one, retain only
+  // addresses for assets actually held in this account or just created by it.
+  const userWallets = useMemo(() => {
+    const ownerId = (wallet) => wallet.userId || wallet.user?._id || wallet.user || wallet.ownerId || wallet.owner?._id
+    const walletsWithOwner = wallets.filter((wallet) => ownerId(wallet) != null)
+    const created = wallets.filter((wallet) => createdWalletKeys.includes(walletKey(wallet)))
+    if (walletsWithOwner.length > 0) {
+      const owned = walletsWithOwner.filter((wallet) => String(ownerId(wallet)) === String(userId))
+      return uniqueWallets([...owned, ...created])
+    }
+
+    const heldAssets = new Set((balances?.crypto || []).map((asset) => assetKey(asset.asset)))
+    const matched = wallets.filter((wallet) =>
+      heldAssets.has(assetKey(wallet.asset)) || createdWalletKeys.includes(walletKey(wallet))
+    )
+    return uniqueWallets(matched)
+  }, [balances, createdWalletKeys, userId, wallets])
+
+  // Open the deposit modal with one of this user's addresses only.
+  const openDeposit = () => {
+    setDepositWalletId((prev) => userWallets.some((wallet) => wallet._id === prev) ? prev : userWallets[0]?._id || '')
+    setDepositAmount('')
+    setShowDeposit(true)
+  }
+  const depositWallet = userWallets.find((wallet) => wallet._id === depositWalletId) || null
 
   return (
     <div className="space-y-6">
@@ -181,7 +282,7 @@ export default function WalletPage() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Fiat balance" value={loading ? '…' : fmtMoney(fiatTotal, currency)} icon={WalletIcon} />
-        <StatCard label="Active addresses" value={loading ? '…' : `${wallets.length}`} icon={Coins} />
+        <StatCard label="Active addresses" value={loading ? '…' : `${userWallets.length}`} icon={Coins} />
         <StatCard label="Crypto assets" value={loading ? '…' : `${cryptoTotalAssets.length}`} />
         <StatCard label="Base currency" value={currency} />
       </div>
@@ -217,9 +318,9 @@ export default function WalletPage() {
       </PanelCard>
 
       <PanelCard eyebrow="Deposit addresses" title="Crypto wallets">
-        {wallets.length > 0 ? (
+        {userWallets.length > 0 ? (
           <div className="space-y-3">
-            {wallets.map((w) => (
+            {userWallets.map((w) => (
               <motion.div key={w._id}
                 initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                 className="card-glass p-4 flex items-center gap-4"
@@ -337,7 +438,7 @@ export default function WalletPage() {
               <button onClick={() => setShowDeposit(false)} className="text-sand-50/60 hover:text-sand-50"><X size={18} /></button>
             </div>
 
-            {wallets.length === 0 ? (
+            {userWallets.length === 0 ? (
               <div className="py-8 text-center">
                 <div className="mx-auto w-12 h-12 rounded-full bg-gold-500/10 border border-gold-500/30 grid place-items-center text-gold-300 mb-4">
                   <Coins size={20} />
@@ -363,7 +464,7 @@ export default function WalletPage() {
                     onChange={(e) => setDepositWalletId(e.target.value)}
                     className="w-full bg-ink-900 border border-sand-50/10 rounded-lg px-3 py-2.5 text-sm text-sand-50 focus:outline-none focus:border-gold-500/50"
                   >
-                    {wallets.map((w) => (
+                    {userWallets.map((w) => (
                       <option key={w._id} value={w._id} className="bg-ink-900">
                         {w.asset} · {w.network || 'Network'}
                       </option>

@@ -44,7 +44,10 @@ export default function WithdrawalsPage() {
     ]).then((results) => {
       const [bal, fnds, tx] = results
       if (bal.status === 'fulfilled' && bal.value?.success) setBalances(bal.value.balances)
-      if (fnds.status === 'fulfilled' && fnds.value?.success) setEnrollments(fnds.value.data || [])
+      if (fnds.status === 'fulfilled' && fnds.value?.success) {
+        const fundData = fnds.value.data || fnds.value.funds || []
+        setEnrollments(Array.isArray(fundData) ? fundData : fundData.fund ? [fundData] : Object.values(fundData))
+      }
       if (tx.status === 'fulfilled' && tx.value?.success) {
         setHistory(
           (tx.value.transactions || [])

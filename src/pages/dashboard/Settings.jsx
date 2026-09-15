@@ -9,6 +9,11 @@ import { PanelCard } from '../../components/dashboard/widgets.jsx'
 import AuthenticatorCard from '../../components/dashboard/AuthenticatorCard.jsx'
 import { fetchUserData, updateUserProfile } from '../../utils/api.js'
 import { useTheme } from '../../theme/ThemeContext.jsx'
+import { DIAL_CODES } from '../../data/dialCodes.js'
+import { getCountries, getExampleNumber, validatePhoneNumberLength } from 'libphonenumber-js/max'
+import mobilePhoneExamples from 'libphonenumber-js/examples.mobile.json'
+
+const DEFAULT_DIAL_CODE = '+1'
 
 const tabs = [
   { id: 'profile',       label: 'Profile',       icon: User },
@@ -211,7 +216,7 @@ export default function Settings() {
               <Field label="Organization">
                 <input className="input" value={profile.organization} onChange={(e) => setProfile({ ...profile, organization: e.target.value })} placeholder="Optional" />
               </Field>
-              <Field label="Phone" hint="Select your country code, then enter digits only.">
+              <Field label="Phone">
                 <PhoneField value={profile.phone} onChange={(phone) => setProfile({ ...profile, phone })} />
               </Field>
               <Field label="Short bio" full>
@@ -436,42 +441,50 @@ function PasswordInput({ value, onChange, placeholder }) {
   )
 }
 
-// Dial codes covering PQS's primary investor jurisdictions plus common
-// international ones. Value is the E.164 calling code (kept distinct from
-// "preferences > localization" which sets the display timezone, not phone country).
-// `digits` is the national significant number length (i.e. excluding the dial
-// code itself) used to validate the number field per ITU-T E.164 / national plans.
-const DIAL_CODES = [
-  { code: '+1',   label: 'North America (+1)',     digits: 10 },
-  { code: '+44',  label: 'United Kingdom (+44)',    digits: 10 },
-  { code: '+971', label: 'UAE (+971)',              digits: 9 },
-  { code: '+65',  label: 'Singapore (+65)',         digits: 8 },
-  { code: '+91',  label: 'India (+91)',             digits: 10 },
-  { code: '+351', label: 'Portugal (+351)',         digits: 9 },
-  { code: '+1242', label: 'Bahamas (+1242)',        digits: 7 },
-  { code: '+1345', label: 'Cayman Islands (+1345)', digits: 7 },
-]
-
 function splitPhone(phone) {
   const match = DIAL_CODES
     .slice()
     .sort((a, b) => b.code.length - a.code.length)
     .find((d) => phone.startsWith(d.code))
   if (match) return { dial: match.code, number: phone.slice(match.code.length).trim() }
-  return { dial: DIAL_CODES[0].code, number: phone.replace(/^\+/, '') }
+  return { dial: DEFAULT_DIAL_CODE, number: phone.replace(/^\+/, '') }
 }
 
-// Returns an error message if `number` doesn't have the digit count required
-// by `dial`'s national plan, or null if valid (empty number is left to the
-// required-field check rather than reported here).
+// National plans vary and can change. E.164's stable constraint is a maximum
+// of 15 digits for the entire international number, including the calling code.
 function phoneNumberError(dial, number) {
   if (!number) return null
-  const expected = DIAL_CODES.find((d) => d.code === dial)?.digits
-  if (!expected) return null
-  if (number.length !== expected) {
-    return `Enter exactly ${expected} digits for ${dial}.`
+  const length = validatePhoneNumberLength(`${dial}${number}`)
+  const country = DIAL_CODES.find((item) => item.code === dial)?.country || 'Selected country'
+  const hint = phoneLengthHint(dial)
+
+  if (length === 'TOO_SHORT') {
+    return `${country}: this number is too short. ${hint}`
+  }
+  if (length === 'TOO_LONG') {
+    return `${country}: this number is too long. ${hint}`
+  }
+  if (length === 'INVALID_LENGTH') {
+    return `${country}: this number length is not valid. ${hint}`
   }
   return null
+}
+
+// Use libphonenumber's country metadata for validation. Examples are used only
+// as a friendly hint: national plans can permit more than one valid length.
+function phoneLengthHint(dial) {
+  const dialDigits = dial.replace(/\D/g, '')
+  const lengths = [...new Set(getCountries().flatMap((country) => {
+    const example = getExampleNumber(country, mobilePhoneExamples)
+    const internationalDigits = example?.number?.replace(/\D/g, '') || ''
+    return internationalDigits.startsWith(dialDigits)
+      ? [internationalDigits.length - dialDigits.length]
+      : []
+  }))].sort((a, b) => a - b)
+
+  if (lengths.length === 1) return `Enter ${lengths[0]} digits after ${dial}.`
+  if (lengths.length > 1) return `Usually ${lengths[0]}–${lengths.at(-1)} digits after ${dial}.`
+  return `Enter the national number after ${dial}.`
 }
 
 // Generic dropdown that always opens below its trigger and never overlaps
@@ -479,7 +492,7 @@ function phoneNumberError(dial, number) {
 // consistently everywhere it's used (phone dial code, timezone, currency, language).
 // The menu is portaled to <body> because PanelCard uses overflow-hidden for
 // its decorative glow, which would otherwise clip an absolutely-positioned menu.
-function Combobox({ value, onChange, options }) {
+function Combobox({ value, onChange, options, triggerLabel }) {
   const [open, setOpen] = useState(false)
   const [rect, setRect] = useState(null)
   const triggerRef = useRef(null)
@@ -514,7 +527,7 @@ function Combobox({ value, onChange, options }) {
         onClick={() => setOpen((v) => !v)}
         className="input w-full flex items-center justify-between cursor-pointer"
       >
-        <span className="truncate">{current?.label ?? value}</span>
+        <span className="truncate">{triggerLabel ?? current?.label ?? value}</span>
         <ChevronDown size={14} className={`text-sand-50/50 flex-shrink-0 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && rect && createPortal(
@@ -547,14 +560,15 @@ function Combobox({ value, onChange, options }) {
 function PhoneField({ value, onChange }) {
   const { dial, number } = splitPhone(value || '')
   const numberRef = useRef(null)
-  const maxDigits = DIAL_CODES.find((d) => d.code === dial)?.digits
+  const maxDigits = Math.max(1, 15 - dial.replace(/\D/g, '').length)
   const error = phoneNumberError(dial, number)
+  const hint = phoneLengthHint(dial)
 
   // Always keep the dial code, even before any digits are typed — otherwise
   // picking a code with an empty number field silently resets to the default.
   // Changing the code later never touches the digits already typed.
   const update = (nextDial, nextNumber) => {
-    const nextMax = DIAL_CODES.find((d) => d.code === nextDial)?.digits
+    const nextMax = Math.max(1, 15 - nextDial.replace(/\D/g, '').length)
     const digits = nextNumber.replace(/\D/g, '').slice(0, nextMax)
     onChange(`${nextDial} ${digits}`.trim())
   }
@@ -566,7 +580,8 @@ function PhoneField({ value, onChange }) {
           <Combobox
             value={dial}
             onChange={(nextDial) => { update(nextDial, number); numberRef.current?.focus() }}
-            options={DIAL_CODES.map((d) => ({ value: d.code, label: d.code }))}
+            options={DIAL_CODES.map((d) => ({ value: d.code, label: d.label }))}
+            triggerLabel={dial}
           />
         </div>
         <input
@@ -580,7 +595,9 @@ function PhoneField({ value, onChange }) {
           placeholder="555 000 0000"
         />
       </div>
-      {error && <span className="block mt-1 text-[11px] text-rose-400">{error}</span>}
+      <span className={`block mt-1 text-[11px] ${error ? 'text-rose-400' : 'text-sand-50/45'}`}>
+        {error || hint}
+      </span>
     </div>
   )
 }

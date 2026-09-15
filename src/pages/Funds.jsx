@@ -1,10 +1,12 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, ShieldCheck, TrendingUp, Layers } from 'lucide-react'
 import SectionHeader from '../components/SectionHeader.jsx'
 import AmbientBackdrop from '../components/AmbientBackdrop.jsx'
 import RiskMeter from '../components/RiskMeter.jsx'
-import { liveFunds } from '../data/funds.js'
+import { funds as localFunds } from '../data/funds.js'
+import { fetchAllFunds } from '../utils/api.js'
 
 const riskTone = {
   Conservative: { tag: 'bg-emerald-500/25 text-emerald-100 border-emerald-400/60', icon: ShieldCheck },
@@ -13,16 +15,40 @@ const riskTone = {
 }
 
 export default function Funds() {
-  const orderedFunds = [...liveFunds].sort((a, b) => a.riskLevel - b.riskLevel)
+  const [apiFunds, setApiFunds] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    fetchAllFunds()
+      .then((response) => {
+        if (!active) return
+        const list = Array.isArray(response) ? response : response?.funds || response?.data || []
+        setApiFunds(Array.isArray(list) ? list.map(toCatalogueFund) : [])
+      })
+      // The approved website catalogue remains a useful fallback if the live
+      // service is temporarily unavailable.
+      .catch(() => { if (active) setApiFunds([]) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [])
+
+  // The API is authoritative for active PQS offerings. The local catalogue
+  // provides a full graceful fallback, including its detail pages.
+  const catalogue = apiFunds.length > 0 ? apiFunds : localFunds
+  const orderedFunds = useMemo(
+    () => [...catalogue].sort((a, b) => (a.riskLevel || 3) - (b.riskLevel || 3)),
+    [catalogue]
+  )
   return (
     <div>
       <section className="relative py-20 md:py-28">
         <AmbientBackdrop />
         <div className="container-page relative">
           <SectionHeader
-            eyebrow="Active Offering"
-            title={<>One live fund. <span className="gold-text">One platform.</span></>}
-            subtitle="The website currently surfaces the single live mandate. The fact sheet button downloads the approved PDF for that live fund."
+            eyebrow="PQS Fund Catalogue"
+            title={<>Explore every <span className="gold-text">PQS fund.</span></>}
+            subtitle="This catalogue shows all fund offerings listed by PQS. Your Portfolio remains separate and shows only funds you have subscribed to."
           />
         </div>
       </section>
@@ -30,7 +56,9 @@ export default function Funds() {
       {/* Consolidated fund cards */}
       <section className="container-page pt-6 md:pt-10 pb-20 md:pb-24">
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-          {orderedFunds.map((f, i) => {
+          {loading ? (
+            <div className="lg:col-span-3 py-12 text-center text-sm text-sand-50/55">Loading PQS funds…</div>
+          ) : orderedFunds.map((f, i) => {
             const tone = riskTone[f.riskProfile] || riskTone.Moderate
             const ToneIcon = tone.icon
             return (
@@ -40,7 +68,7 @@ export default function Funds() {
                 className="card-glass overflow-hidden lift-on-hover flex flex-col"
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img src={f.image} alt={f.name} className="absolute inset-0 w-full h-full object-cover" />
+                  {f.image && <img src={f.image} alt={f.name} className="absolute inset-0 w-full h-full object-cover" />}
                   <div className={`absolute inset-0 bg-gradient-to-tr ${f.accentFrom} ${f.accentTo} mix-blend-overlay`} />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent" />
                   <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-ink-950/70 border border-sand-50/15 text-[10px] uppercase tracking-widest text-gold-200">
@@ -70,10 +98,10 @@ export default function Funds() {
                   </div>
 
                   <Link
-                    to={`/funds/${f.slug}`}
+                    to={f.apiId ? `/dashboard/subscribe/${f.apiId}` : `/funds/${f.slug}`}
                     className="mt-6 btn-primary text-sm justify-center"
                   >
-                    {f.comingSoon ? 'Preview fund' : 'View opportunities'} <ArrowRight size={14} />
+                    {f.comingSoon ? 'Preview fund' : f.apiId ? 'Subscribe' : 'View fund'} <ArrowRight size={14} />
                   </Link>
                 </div>
               </motion.div>
@@ -112,8 +140,8 @@ export default function Funds() {
                   <td className="px-5 py-4 text-sand-50/70">{f.horizon}</td>
                   <td className="px-5 py-4 text-sand-50/80">{f.minimum}</td>
                   <td className="px-5 py-4 text-right">
-                    <Link to={`/funds/${f.slug}`} className="text-xs text-gold-300 hover:text-gold-200 inline-flex items-center gap-1">
-                      {f.comingSoon ? 'Coming soon' : 'Details'} <ArrowRight size={12} />
+                    <Link to={f.apiId ? `/dashboard/subscribe/${f.apiId}` : `/funds/${f.slug}`} className="text-xs text-gold-300 hover:text-gold-200 inline-flex items-center gap-1">
+                      {f.comingSoon ? 'Coming soon' : f.apiId ? 'Subscribe' : 'Details'} <ArrowRight size={12} />
                     </Link>
                   </td>
                 </tr>
@@ -124,6 +152,26 @@ export default function Funds() {
       </section>
     </div>
   )
+}
+
+function toCatalogueFund(fund, index) {
+  const riskLevel = Number(fund.riskLevel ?? fund.risk ?? 3)
+  const riskProfile = fund.riskProfile || (riskLevel >= 4 ? 'High' : riskLevel <= 2 ? 'Conservative' : 'Moderate')
+  return {
+    apiId: fund._id || fund.id,
+    slug: fund.slug || `pqs-fund-${index + 1}`,
+    fundNumber: fund.subAcc || fund.fundNumber || `PQS Fund ${index + 1}`,
+    name: fund.fundName || fund.name || 'PQS Fund',
+    tagline: fund.description || fund.summary || 'A PQS investment offering for qualified investors.',
+    riskLevel: Number.isFinite(riskLevel) ? riskLevel : 3,
+    riskProfile,
+    targetDividend: fund.targetDividend || fund.targetReturn || 'Available on request',
+    horizon: fund.horizon || fund.term || '—',
+    minimum: fund.minimumInvestment || fund.minimum || 'Available on request',
+    comingSoon: fund.status === 'coming-soon' || fund.isActive === false,
+    accentFrom: 'from-gold-500/20',
+    accentTo: 'to-ink-950/10',
+  }
 }
 
 function Metric({ label, value, children }) {
