@@ -156,7 +156,7 @@ export default function InvestorOverview() {
             actions, reporting, and withdrawal requests are available.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/dashboard/funds" className="btn-primary text-sm">
+            <Link to="/funds" className="btn-primary text-sm">
               Explore funds <ArrowRight size={14} />
             </Link>
             <Link to="/dashboard/wallet" className="btn-ghost text-sm">

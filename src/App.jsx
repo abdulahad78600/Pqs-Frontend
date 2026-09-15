@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
@@ -13,6 +13,7 @@ import Mission from './pages/Mission.jsx'
 import Team from './pages/Team.jsx'
 import Leadership from './pages/Leadership.jsx'
 import FundOverview from './pages/FundOverview.jsx'
+import Funds from './pages/Funds.jsx'
 import Insights from './pages/Insights.jsx'
 import Contact from './pages/Contact.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -106,6 +107,11 @@ function ExternalRedirect({ to }) {
   return null
 }
 
+function DashboardFundRedirect() {
+  const { slug } = useParams()
+  return <Navigate to={slug ? `/funds/${slug}` : '/funds'} replace />
+}
+
 export default function App() {
   const location = useLocation()
   return (
@@ -122,7 +128,7 @@ export default function App() {
 
           {/* All other content is gated — guests are bounced to /login */}
           <Route path="/funds" element={
-            <ProtectedRoute><Shell><AnimatedPage><FundOverview /></AnimatedPage></Shell></ProtectedRoute>
+            <ProtectedRoute><Shell><AnimatedPage><Funds /></AnimatedPage></Shell></ProtectedRoute>
           } />
           <Route path="/funds/:slug" element={
             <ProtectedRoute><Shell><AnimatedPage><FundDetail /></AnimatedPage></Shell></ProtectedRoute>
@@ -179,9 +185,10 @@ export default function App() {
             <Route path="reports"    element={<InvestorReports />} />
             <Route path="insights"   element={<InvestorInsights />} />
 
-            {/* Consolidated three-fund browse view */}
-            <Route path="funds"            element={<FundOverview />} />
-            <Route path="funds/:slug"      element={<FundDetail />} />
+            {/* Fund marketing/profile pages belong to the public site shell.
+                Keep legacy dashboard links working, but send them there. */}
+            <Route path="funds"            element={<DashboardFundRedirect />} />
+            <Route path="funds/:slug"      element={<DashboardFundRedirect />} />
 
             {/* Account / API-backed pages */}
             <Route path="wallet"           element={<WalletPage />} />

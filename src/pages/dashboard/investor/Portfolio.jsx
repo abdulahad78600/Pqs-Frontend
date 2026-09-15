@@ -19,6 +19,7 @@ export default function InvestorPortfolio() {
   const [currency, setCurrency] = useState('USD')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedPosition, setSelectedPosition] = useState(null)
 
   useEffect(() => {
     if (!userId) return
@@ -37,7 +38,8 @@ export default function InvestorPortfolio() {
         setCurrency(curr.value.currency?.currency || 'USD')
       }
       if (fnds.status === 'fulfilled' && fnds.value?.success) {
-        setEnrollments(fnds.value.data || [])
+        const fundData = fnds.value.data || fnds.value.funds || []
+        setEnrollments(Array.isArray(fundData) ? fundData : fundData.fund ? [fundData] : Object.values(fundData))
       }
       if (subs.status === 'fulfilled' && Array.isArray(subs.value)) {
         setSubscriptions(subs.value)
@@ -52,15 +54,20 @@ export default function InvestorPortfolio() {
     return () => { alive = false }
   }, [userId])
 
-  const totalCommitted    = useMemo(() => enrollments.reduce((s, e) => s + (e.depositBalance || 0), 0), [enrollments])
-  const totalNav          = useMemo(() => enrollments.reduce((s, e) => s + (e.balance || 0), 0), [enrollments])
+  // A fund holding's monetary NAV is the units held × the latest NAV per unit.
+  // Some older API records already provide that calculated market value as
+  // `balance`, so the normalized position falls back to it when the two components are
+  // not available.
+  const positions = useMemo(() => enrollments.map(toPosition), [enrollments])
+  const totalCommitted = useMemo(() => positions.reduce((sum, p) => sum + p.capital, 0), [positions])
+  const totalNav = useMemo(() => positions.reduce((sum, p) => sum + p.nav, 0), [positions])
   const totalProfit       = totalNav - totalCommitted
   const weightedReturn    = useMemo(() => {
-    const weighted = enrollments
-      .filter((e) => e.depositBalance > 0)
-      .reduce((s, e) => s + ((e.balance - e.depositBalance) / e.depositBalance) * (e.depositBalance / Math.max(totalCommitted, 1)), 0)
+    const weighted = positions
+      .filter((p) => p.capital > 0)
+      .reduce((sum, p) => sum + ((p.nav - p.capital) / p.capital) * (p.capital / Math.max(totalCommitted, 1)), 0)
     return weighted * 100
-  }, [enrollments, totalCommitted])
+  }, [positions, totalCommitted])
 
   return (
     <div className="space-y-6">
@@ -101,25 +108,25 @@ export default function InvestorPortfolio() {
       {view === 'summary' && (
         <div className="grid lg:grid-cols-3 gap-5">
           <PanelCard className="lg:col-span-2" eyebrow="Allocation" title="Fund-level exposure" accent>
-            {enrollments.length > 0 ? (
+            {positions.length > 0 ? (
               <div className="flex items-center gap-6 flex-wrap">
                 <DonutChart
-                  segments={enrollments.map((e, i) => ({
-                    value: e.balance || 0,
+                  segments={positions.map((position, i) => ({
+                    value: position.nav,
                     color: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
                   }))}
                   total={totalNav}
                   currency={currency}
                 />
                 <div className="flex-1 min-w-[220px] space-y-3">
-                  {enrollments.map((e, i) => {
-                    const pct = totalNav > 0 ? (e.balance / totalNav) * 100 : 0
+                  {positions.map((position, i) => {
+                    const pct = totalNav > 0 ? (position.nav / totalNav) * 100 : 0
                     return (
-                      <div key={e.enrollmentId}>
+                      <div key={position.id}>
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: SEGMENT_COLORS[i % SEGMENT_COLORS.length] }} />
-                            <span className="text-sand-50 truncate">{e.fund?.name || e.fund?.fundName || 'Fund'}</span>
+                            <span className="text-sand-50 truncate">{position.name}</span>
                           </div>
                           <span className="text-sand-50/55 ml-2 flex-shrink-0">{pct.toFixed(0)}%</span>
                         </div>
@@ -134,19 +141,19 @@ export default function InvestorPortfolio() {
           </PanelCard>
 
           <PanelCard eyebrow="NAV trend" title="Latest fund">
-            {enrollments[0]?.navHistory?.length > 1 ? (
+            {positions[0]?.navHistory?.length > 1 ? (
               <>
-                <Sparkline data={enrollments[0].navHistory.map((p) => p.navValue).slice(-12)} />
+                <Sparkline data={positions[0].navHistory.map(navPointValue).slice(-12)} />
                 <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-sand-50/8">
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-sand-50/45">Latest NAV</div>
                     <div className="font-display text-base text-sand-50">
-                      {fmtMoney(enrollments[0].navHistory.at(-1).navValue, currency)}
+                      {fmtMoney(navPointValue(positions[0].navHistory.at(-1)), currency)}
                     </div>
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-sand-50/45">Records</div>
-                    <div className="font-display text-base text-sand-50">{enrollments[0].navHistory.length}</div>
+                    <div className="font-display text-base text-sand-50">{positions[0].navHistory.length}</div>
                   </div>
                 </div>
               </>
@@ -157,41 +164,40 @@ export default function InvestorPortfolio() {
         </div>
       )}
 
-      <PanelCard eyebrow="Positions" title={view === 'by-fund' ? 'Fund-by-fund detail' : 'Top positions'}>
-        {enrollments.length > 0 ? (
+      <PanelCard eyebrow="Positions" title={view === 'by-fund' ? 'Fund-by-fund detail' : 'All fund positions'}>
+        {positions.length > 0 ? (
           <div className="space-y-3">
-            {enrollments.map((e, i) => {
-              const fund = e.fund || {}
-              const pl = (e.balance || 0) - (e.depositBalance || 0)
-              const plPct = e.depositBalance > 0 ? (pl / e.depositBalance) * 100 : 0
+            {positions.map((position, i) => {
+              const pl = position.nav - position.capital
+              const plPct = position.capital > 0 ? (pl / position.capital) * 100 : 0
               return (
-                <motion.div key={e.enrollmentId}
+                <motion.div key={position.id}
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                   className="card-glass p-5 lift-on-hover"
                 >
                   <div className="grid lg:grid-cols-12 gap-4 items-center">
                     <div className="lg:col-span-4">
-                      <div className="text-[10px] uppercase tracking-widest text-gold-300/80">{fund.subAcc || 'PQS Fund'}</div>
-                      <div className="mt-1 font-display text-lg text-sand-50 truncate">{fund.name || fund.fundName || 'Fund'}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-gold-300/80">{position.subAccount}</div>
+                      <div className="mt-1 font-display text-lg text-sand-50 truncate">{position.name}</div>
                     </div>
                     <div className="lg:col-span-2">
-                      <Cell label="Capital" value={fmtMoney(e.depositBalance, currency)} />
+                      <Cell label="Capital" value={fmtMoney(position.capital, currency)} />
                     </div>
                     <div className="lg:col-span-2">
-                      <Cell label="NAV" value={fmtMoney(e.balance, currency)} />
+                      <Cell label="NAV" value={fmtMoney(position.nav, currency)} />
                     </div>
                     <div className="lg:col-span-2">
                       <Cell label="P/L" value={fmtMoney(pl, currency)} accent={pl >= 0 ? 'emerald' : 'rose'} />
                     </div>
                     <div className="lg:col-span-2 flex justify-end items-center gap-2">
                       <span className={`text-xs ${plPct >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{plPct.toFixed(1)}%</span>
-                      <button className="btn-ghost text-xs py-2">View <ChevronRight size={14}/></button>
+                      <button type="button" onClick={() => setSelectedPosition(position)} className="btn-ghost text-xs py-2">View <ChevronRight size={14}/></button>
                     </div>
                   </div>
                   {view === 'by-fund' && (
                     <div className="mt-4 pt-4 border-t border-sand-50/8 grid sm:grid-cols-3 gap-3">
-                      <ProgressBar label="Capital deployed" value={Math.min(100, totalCommitted ? (e.depositBalance / totalCommitted) * 100 : 0)} suffix="%" />
-                      <ProgressBar label="NAV share" value={Math.min(100, totalNav ? (e.balance / totalNav) * 100 : 0)} suffix="%" />
+                      <ProgressBar label="Capital deployed" value={Math.min(100, totalCommitted ? (position.capital / totalCommitted) * 100 : 0)} suffix="%" />
+                      <ProgressBar label="NAV share" value={Math.min(100, totalNav ? (position.nav / totalNav) * 100 : 0)} suffix="%" />
                       <ProgressBar label="P/L" value={Math.max(-50, Math.min(50, plPct))} max={50} suffix="%" />
                     </div>
                   )}
@@ -203,6 +209,8 @@ export default function InvestorPortfolio() {
           <Empty loading={loading} message="No active positions yet." />
         )}
       </PanelCard>
+
+      {selectedPosition && <PositionDetails position={selectedPosition} currency={currency} onClose={() => setSelectedPosition(null)} />}
 
       {subscriptions.length > 0 && (
         <PanelCard eyebrow="Subscriptions" title="Submitted subscription requests">
@@ -241,6 +249,79 @@ function Cell({ label, value, accent }) {
     <div>
       <div className="text-[10px] uppercase tracking-widest text-sand-50/45">{label}</div>
       <div className={`mt-0.5 font-display text-base ${tone}`}>{value}</div>
+    </div>
+  )
+}
+
+const toNumber = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value !== 'string') return 0
+  const normalized = value.replace(/[^0-9.-]/g, '')
+  const result = Number(normalized)
+  return Number.isFinite(result) ? result : 0
+}
+
+function navPointValue(point) {
+  return toNumber(point?.navPerUnit ?? point?.navValue ?? point?.value ?? point)
+}
+
+function toPosition(enrollment, index) {
+  const fund = enrollment.fund || {}
+  const navHistory = Array.isArray(enrollment.navHistory) ? enrollment.navHistory : []
+  const units = toNumber(enrollment.units ?? enrollment.unitBalance ?? enrollment.quantity)
+  const navPerUnit = toNumber(
+    enrollment.navPerUnit ?? enrollment.navPerShare ?? enrollment.latestNavPerUnit ??
+    fund.navPerUnit ?? fund.navPerShare ?? navHistory.at(-1)?.navPerUnit
+  )
+  const hasUnitValue = units > 0 && navPerUnit > 0
+  return {
+    ...enrollment,
+    id: enrollment.enrollmentId || enrollment._id || `${fund._id || fund.fundName || 'fund'}-${index}`,
+    name: fund.name || fund.fundName || enrollment.fundName || 'PQS Fund',
+    subAccount: fund.subAcc || fund.subAccount || 'PQS Fund',
+    capital: toNumber(enrollment.depositBalance ?? enrollment.capital),
+    nav: hasUnitValue ? units * navPerUnit : toNumber(enrollment.balance ?? enrollment.currentValue),
+    units,
+    navPerUnit,
+    navHistory,
+  }
+}
+
+function PositionDetails({ position, currency, onClose }) {
+  const profit = position.nav - position.capital
+  return (
+    <div className="fixed inset-0 z-[100] grid place-items-center p-4" role="dialog" aria-modal="true" aria-label={`${position.name} position details`}>
+      <button type="button" aria-label="Close position details" onClick={onClose} className="absolute inset-0 bg-ink-950/80 backdrop-blur-sm" />
+      <div className="relative w-full max-w-lg card-glass p-6 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="eyebrow">Fund position</div>
+            <h3 className="mt-1 font-display text-2xl text-sand-50">{position.name}</h3>
+          </div>
+          <button type="button" onClick={onClose} className="btn-ghost text-xs py-2">Close</button>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          <Detail label="Capital deployed" value={fmtMoney(position.capital, currency)} />
+          <Detail label="Current NAV" value={fmtMoney(position.nav, currency)} />
+          <Detail label="Unrealized P/L" value={fmtMoney(profit, currency)} positive={profit >= 0} />
+          {position.units > 0 && <Detail label="Units held" value={position.units.toLocaleString('en-US', { maximumFractionDigits: 6 })} />}
+          {position.navPerUnit > 0 && <Detail label="NAV per unit" value={fmtMoney(position.navPerUnit, currency)} />}
+        </div>
+        {position.units > 0 && position.navPerUnit > 0 && (
+          <p className="mt-5 text-xs text-sand-50/55 leading-relaxed">
+            Current NAV is calculated as units held × latest NAV per unit.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Detail({ label, value, positive }) {
+  return (
+    <div className="rounded-xl bg-ink-900/60 border border-sand-50/8 p-3">
+      <div className="text-[10px] uppercase tracking-widest text-sand-50/45">{label}</div>
+      <div className={`mt-1 font-display text-lg ${positive === undefined ? 'text-sand-50' : positive ? 'text-emerald-300' : 'text-rose-300'}`}>{value}</div>
     </div>
   )
 }

@@ -12,7 +12,7 @@ export const dashboardNavSections = [
     items: [
       { to: '/dashboard',               label: 'Dashboard',          icon: LayoutDashboard },
       { to: '/dashboard/notifications', label: 'Messages',           icon: MessageSquare, badge: 'unread' },
-      { to: '/dashboard/funds',         label: 'Funds',              icon: Layers },
+      { to: '/funds',                   label: 'Funds',              icon: Layers },
     ],
   },
   {
